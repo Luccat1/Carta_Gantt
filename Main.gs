@@ -54,9 +54,7 @@ function initStructure() {
 }
 
 // Placeholder functions to avoid errors before they are implemented
-function buildCalendarFromConfig() {
-  SpreadsheetApp.getUi().alert('Función no implementada aún.');
-}
+
 
 function refreshGanttView() {
   SpreadsheetApp.getUi().alert('Función no implementada aún.');
