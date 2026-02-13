@@ -56,9 +56,7 @@ function initStructure() {
 // Placeholder functions to avoid errors before they are implemented
 
 
-function refreshGanttView() {
-  SpreadsheetApp.getUi().alert('Función no implementada aún.');
-}
+
 
 function rolloverToNextYear() {
   SpreadsheetApp.getUi().alert('Función no implementada aún.');
