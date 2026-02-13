@@ -58,6 +58,4 @@ function initStructure() {
 
 
 
-function rolloverToNextYear() {
-  SpreadsheetApp.getUi().alert('Función no implementada aún.');
-}
+
