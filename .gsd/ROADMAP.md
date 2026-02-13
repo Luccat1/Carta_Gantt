@@ -11,7 +11,7 @@
 ## Phases
 
 ### Phase 1: Foundation & Calendar
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Establish the sheet structure and calendar generation logic.
 **Requirements**: REQ-01, REQ-02
 - Validate/Create CONFIG, TASKS, LOOKUPS sheets.
