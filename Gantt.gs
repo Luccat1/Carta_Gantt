@@ -83,3 +83,66 @@ function refreshGanttView() {
   // Optional: Auto-resize columns
   // ganttSheet.autoResizeColumns(1, headers.length);
 }
+
+/**
+ * Applies conditional formatting to the Gantt grid.
+ * 
+ * @param {Sheet} sheet - The GANTT_VIEW sheet.
+ * @param {number} numStaticCols - Number of static columns (before week columns).
+ * @param {Array<Object>} weekData - Array of week objects {week, start, end, label}.
+ */
+function applyOverlapConditionalFormatting_(sheet, numStaticCols, weekData) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return; // No data
+  
+  // Clear existing rules
+  sheet.clearConditionalFormatRules();
+  
+  var rules = [];
+  
+  // Columns F and G are fixed for Start/End in TASKS structure
+  // F = $F2 (Inicio), G = $G2 (Fin)
+  // Note: R1C1 notation or direct A1 notation with absolute columns is needed.
+  // We will use A1 notation: $F2, $G2
+  
+  // Iterate over each week column
+  for (var i = 0; i < weekData.length; i++) {
+    var week = weekData[i];
+    
+    // Calculate the column index for this week (1-based)
+    // Static columns + 1 (for first week) + i
+    var colIndex = numStaticCols + 1 + i;
+    
+    // Define the range for this specific column (Row 2 to LastRow)
+    var range = sheet.getRange(2, colIndex, lastRow - 1, 1);
+    
+    // Date formatting for formula
+    // DATE(yyyy, mm, dd)
+    var wStart = week.start;
+    var wEnd = week.end;
+    
+    var sY = wStart.getFullYear();
+    var sM = wStart.getMonth() + 1;
+    var sD = wStart.getDate();
+    
+    var eY = wEnd.getFullYear();
+    var eM = wEnd.getMonth() + 1;
+    var eD = wEnd.getDate();
+    
+    // Formula: =AND($F2 <= WeekEnd, $G2 >= WeekStart)
+    // Meaning: Task starts before or during week end AND Task ends after or during week start.
+    // Overlap logic.
+    
+    var formula = '=AND($F2<=DATE(' + eY + ',' + eM + ',' + eD + '),$G2>=DATE(' + sY + ',' + sM + ',' + sD + '))';
+    
+    var rule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied(formula)
+      .setBackground('#4a86e8') // Blue color
+      .setRanges([range])
+      .build();
+      
+    rules.push(rule);
+  }
+  
+  sheet.setConditionalFormatRules(rules);
+}
