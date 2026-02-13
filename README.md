@@ -1,4 +1,4 @@
-# Sistema de Gantt Automatizado en Google Sheets
+ # Sistema de Gantt Automatizado en Google Sheets
 
 Este sistema te permite gestionar cronogramas de proyectos de forma sencilla, generando vistas de Gantt visuales y automáticas a partir de una lista simple de tareas.
 

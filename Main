@@ -1,0 +1,183 @@
+/** @OnlyCurrentDoc */
+
+const SHEETS = {
+  CONFIG: 'CONFIG',
+  TASKS: 'TASKS',
+  VIEW: 'GANTT_VIEW',
+  LOOKUPS: 'LOOKUPS',
+  DASH: 'DASHBOARD',
+};
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Gantt ⚙️')
+    .addItem('1) Inicializar / reparar estructura', 'initStructure')
+    .addSeparator()
+    .addItem('2) Generar calendario (año/mes desde CONFIG)', 'buildCalendarFromConfig')
+    .addItem('3) Refrescar vista Gantt', 'refreshGanttView')
+    .addSeparator()
+    .addItem('4) Actualizar resúmenes / dashboard', 'refreshDash')
+    .addSeparator()
+    .addItem('Rollover: preparar año 2026 (purgar 2025)', 'rolloverToNextYear')
+    .addToUi();
+}
+
+/** Crea hojas/rangos mínimos si faltan (no destruye datos) */
+function initStructure() {
+  const ss = SpreadsheetApp.getActive();
+  Object.values(SHEETS).forEach(name => {
+    if (!ss.getSheetByName(name)) ss.insertSheet(name);
+  });
+
+  const cfg = ss.getSheetByName(SHEETS.CONFIG);
+  // Config mínima: Año en B1, Mes (1-12) en B2
+  cfg.getRange('A1').setValue('Año');
+  cfg.getRange('A2').setValue('Mes (1-12)');
+  if (!cfg.getRange('B1').getValue()) cfg.getRange('B1').setValue(new Date().getFullYear());
+  if (!cfg.getRange('B2').getValue()) cfg.getRange('B2').setValue(new Date().getMonth() + 1);
+
+  const tasks = ss.getSheetByName(SHEETS.TASKS);
+  if (tasks.getLastRow() === 0) {
+    tasks.appendRow(['Área','Tarea','Subárea','Responsable','Ejecuta','Inicio','Fin','Estado','Etiquetas','Material','ID']);
+  }
+}
+
+/** Lee CONFIG y genera semanas del mes en LOOKUPS (tabla de semanas) */
+function buildCalendarFromConfig() {
+  const ss = SpreadsheetApp.getActive();
+  const cfg = ss.getSheetByName(SHEETS.CONFIG);
+  const year = Number(cfg.getRange('B1').getValue());
+  const month = Number(cfg.getRange('B2').getValue()); // 1-12
+
+  const look = ss.getSheetByName(SHEETS.LOOKUPS);
+  look.clearContents();
+  look.appendRow(['Semana','Inicio','Fin','Etiqueta']);
+
+  const weeks = weeksOfMonth_(year, month);
+  weeks.forEach((w, i) => look.appendRow([`S${i+1}`, w.start, w.end, `${monthNameEs_(month)} S${i+1}`]));
+}
+
+/** Refresca encabezados del Gantt y deja lista la grilla + formato condicional */
+function refreshGanttView() {
+  const ss = SpreadsheetApp.getActive();
+  const view = ss.getSheetByName(SHEETS.VIEW);
+  const tasks = ss.getSheetByName(SHEETS.TASKS);
+  const look = ss.getSheetByName(SHEETS.LOOKUPS);
+
+  // Lee semanas desde LOOKUPS
+  const weeks = look.getRange(2,1, Math.max(look.getLastRow()-1,0), 4).getValues();
+  if (weeks.length === 0) throw new Error('LOOKUPS está vacío. Ejecuta primero "Generar calendario".');
+
+  view.clear();
+
+  // Encabezado base
+  const baseHeaders = ['Área','Tarea','Subárea','Responsable','Ejecuta','Inicio','Fin','Estado'];
+  const weekHeaders = weeks.map(r => r[3]); // Etiqueta
+  view.getRange(1,1,1, baseHeaders.length).setValues([baseHeaders]);
+  view.getRange(1, baseHeaders.length+1, 1, weekHeaders.length).setValues([weekHeaders]);
+
+  // Copia TASKS a la vista (solo columnas base)
+  const lastRow = tasks.getLastRow();
+  if (lastRow < 2) return;
+
+  const data = tasks.getRange(2,1,lastRow-1,8).getValues();
+  view.getRange(2,1,data.length,8).setValues(data);
+
+  // Aplica formato condicional para “pintar” las semanas automáticamente
+  applyOverlapConditionalFormatting_(view, weeks, baseHeaders.length, data.length);
+}
+
+/** Dashboard mínimo: aquí lo dejas crecer (resúmenes por estado, responsable, etc.) */
+function refreshDash() {
+  const ss = SpreadsheetApp.getActive();
+  const dash = ss.getSheetByName(SHEETS.DASH);
+  dash.clearContents();
+  dash.getRange('A1').setValue('Pendiente: construir pivots/resúmenes aquí (automatizado).');
+}
+
+/** Rollover 2026: sube año y purga tareas cuya fecha Fin < 1-ene del año nuevo */
+function rolloverToNextYear() {
+  const ss = SpreadsheetApp.getActive();
+  const cfg = ss.getSheetByName(SHEETS.CONFIG);
+  const tasks = ss.getSheetByName(SHEETS.TASKS);
+
+  const currentYear = Number(cfg.getRange('B1').getValue());
+  const nextYear = currentYear + 1;
+  cfg.getRange('B1').setValue(nextYear);
+
+  const cutoff = new Date(nextYear, 0, 1); // 1-ene-nextYear
+
+  const rng = tasks.getRange(2,1, Math.max(tasks.getLastRow()-1,0), 11);
+  const rows = rng.getValues();
+
+  const kept = rows.filter(r => {
+    const end = r[6]; // Fin (col 7)
+    return !(end instanceof Date) || end >= cutoff; // conserva si no hay fecha o si termina en/tras cutoff
+  });
+
+  // Reescribe (limpia y deja encabezado)
+  tasks.clearContents();
+  tasks.appendRow(['Área','Tarea','Subárea','Responsable','Ejecuta','Inicio','Fin','Estado','Etiquetas','Material','ID']);
+  if (kept.length) tasks.getRange(2,1,kept.length,kept[0].length).setValues(kept);
+
+  // Regenera calendario + vista
+  buildCalendarFromConfig();
+  refreshGanttView();
+}
+
+/* ---------------- helpers ---------------- */
+
+function weeksOfMonth_(year, month1to12) {
+  const month = month1to12 - 1;
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+
+  // Definimos semanas tipo S1..S4 (como tu archivo): 1-7, 8-14, 15-21, 22-finMes
+  const s1 = { start: new Date(year, month, 1),  end: new Date(year, month, 7) };
+  const s2 = { start: new Date(year, month, 8),  end: new Date(year, month, 14) };
+  const s3 = { start: new Date(year, month, 15), end: new Date(year, month, 21) };
+  const s4 = { start: new Date(year, month, 22), end: last };
+  return [s1,s2,s3,s4];
+}
+
+function monthNameEs_(m) {
+  return ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'][m-1];
+}
+
+/**
+ * Pinta la grilla si hay traslape entre [Inicio,Fin] (cols 6-7) y semana.
+ * Usa formato condicional (no colores manuales).
+ */
+function applyOverlapConditionalFormatting_(view, weeks, baseCols, nRows) {
+  const rules = [];
+  const startCol = baseCols + 1;
+  const startRow = 2;
+  const numCols = weeks.length;
+
+  // Borra reglas previas (para que no crezcan como gremlins)
+  view.setConditionalFormatRules([]);
+
+  weeks.forEach((w, i) => {
+    const weekStart = w[1]; // Inicio
+    const weekEnd = w[2];   // Fin
+
+    // Rango: columna de esa semana, filas de tareas
+    const range = view.getRange(startRow, startCol + i, Math.max(nRows,1), 1);
+
+    // Fórmula: solapamiento -> (Inicio <= weekEnd) y (Fin >= weekStart)
+    // Inicio en col F, Fin en col G dentro de la vista
+    const formula = `=AND($F${startRow}<=DATE(${weekEnd.getFullYear()},${weekEnd.getMonth()+1},${weekEnd.getDate()}),` +
+                    `$G${startRow}>=DATE(${weekStart.getFullYear()},${weekStart.getMonth()+1},${weekStart.getDate()}))`;
+
+    const rule = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied(formula)
+      // color se define en la UI o aquí; si quieres por estado, se hace con reglas adicionales
+      .setBackground('#cfe2f3') // cámbialo a tu gusto
+      .setRanges([range])
+      .build();
+
+    rules.push(rule);
+  });
+
+  view.setConditionalFormatRules(rules);
+}

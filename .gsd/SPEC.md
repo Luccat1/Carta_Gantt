@@ -1,6 +1,6 @@
 # SPEC.md — Project Specification
 
-> **Status**: `DRAFT`
+> **Status**: `FINALIZED`
 
 ## Vision
 A "mini-Gantt" system embedded within Google Sheets using Apps Script. It decouples data entry (TASKS) from visualization (GANTT_VIEW), automating the tedious process of drawing bars, managing calendars, and handling annual rollovers. The goal is a "single source of truth" workflow where users only edit data, and the system handles the presentation.
