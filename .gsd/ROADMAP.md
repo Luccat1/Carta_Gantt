@@ -18,7 +18,7 @@
 - Implement `buildCalendarFromConfig()` to generate S1-S4 ranges.
 
 ### Phase 2: Core Visualization
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Render tasks on the Gantt view with correct timing.
 **Requirements**: REQ-03, REQ-04
 - Implement `refreshGanttView()` to map tasks.
