@@ -25,8 +25,8 @@
 - Apply conditional formatting (fixing the anchor bug).
 
 ### Phase 3: Robustness & Safety
-**Status**: ⬜ Not Started
-**Objective**: Prevent data loss and ensure data quality.
+**Status**: ✅ Complete
+**Objective**: Ensure system longevity and data integrity.
 **Requirements**: REQ-05, REQ-07
 - Implement `rolloverToNextYear()` with archiving.
 - Add basic data validation (Dates, Start < End).
