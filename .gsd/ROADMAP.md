@@ -49,9 +49,9 @@
 **Objective**: Auto-estados, Sidebar nueva tarea, rollover mejorado, plantillas.
 
 ### Phase 9: AppSheet
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Tablas separadas, acciones, instrucciones.
 
 ### Phase 10: Integraciones Suite Google
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Calendar, Drive carpetas, Gmail avisos.
