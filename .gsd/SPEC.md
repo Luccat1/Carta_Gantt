@@ -25,8 +25,11 @@ A "mini-Gantt" system embedded within Google Sheets using Apps Script. It decoup
 -   **Performance**: Must handle typical project sheets (hundreds of rows) without timing out.
 
 ## Success Criteria
--   [ ] `initStructure()` correctly creates required sheets if missing.
--   [ ] `refreshGanttView()` renders accurate Gantt bars based on Start/End dates.
--   [ ] "Rollover" process archives old data safely instead of deleting it.
--   [ ] Conditional formatting rules are applied correctly (fixing current anchor bugs).
--   [ ] System handles columns dynamically (Header Mapping) rather than by fixed index.
+- [x] `initStructure()` correctly creates required sheets if missing (TASKS, PROJECTS, ISSUES, etc.).
+- [x] `refreshGanttView()` renders accurate Gantt bars based on Start/End dates.
+- [x] "Rollover" process archives old data safely instead of deleting it.
+- [x] Conditional formatting rules are applied correctly (dynamic R1C1 formulas).
+- [x] System handles columns dynamically (Header Mapping) rather than by fixed index.
+- [x] Robust validation engine reports errors to a separate `ISSUES` sheet.
+- [x] Multi-project support via `PROJECTS` sheet and relational dropdowns.
+- [ ] Automated TIMELINE_DATA generation for native Google Timeline (Phase 6).

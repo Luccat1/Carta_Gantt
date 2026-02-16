@@ -8,60 +8,60 @@ Este sistema te permite gestionar cronogramas de proyectos de forma sencilla, ge
 Todo el control del sistema está en el menú superior llamado **"Gantt ⚙️"**. Si no lo ves al abrir el archivo, espera unos segundos o recarga la página.
 
 ### 2. Hojas Principales
-El sistema utiliza 4 hojas clave. No les cambies el nombre para evitar errores.
+El sistema utiliza hojas clave. No les cambies el nombre para evitar errores.
 *   **CONFIG**: Aquí defines el **Año** y **Mes** que quieres visualizar.
-*   **TASKS**: Aquí escribes tus tareas (es tu base de datos).
-*   **GANTT_VIEW**: Aquí **NO escribas nada manualmente**. Esta hoja se borra y se regenera automáticamente para mostrar el gráfico.
-*   **LOOKUPS**: Hoja auxiliar para cálculos internos (normalmente no necesitas tocarla).
+*   **PROJECTS**: Catálogo de proyectos activos (ID, Nombre, Owner, Fechas).
+*   **TASKS**: Aquí escribes tus tareas (es tu base de datos principal). Referencia a proyectos de la hoja PROJECTS.
+*   **ISSUES**: Hoja de errores generada por el validador. **NO escribas nada manualmente**.
+*   **GANTT_VIEW**: Hoja del gráfico. **NO escribas nada manualmente**. Esta hoja se borra y se regenera automáticamente.
+*   **LOOKUPS**: Hoja auxiliar para cálculos internos.
 
 ---
 
 ## 🛠️ Paso a Paso: Tu Flujo de Trabajo
 
-### Paso 1: Configurar la Fecha
+### Paso 1: Configurar Proyectos
+Ve a la hoja **PROJECTS**:
+*   Define tus proyectos con un ID único y un Nombre. Esto alimentará los desplegables en TASKS.
+
+### Paso 2: Configurar la Fecha Visual
 Ve a la hoja **CONFIG**:
 *   Celda **B1**: Escribe el **Año** (ej. 2026).
-*   Celda **B2**: Escribe el número del **Mes** (1 para Enero, 12 para Diciembre).
+*   Celda **B2**: Escribe el número del **Mes** (1-12).
 
-### Paso 2: Generar la Estructura de Tiempo
+### Paso 3: Generar la Estructura de Tiempo
 En el menú superior, selecciona:
 `Gantt ⚙️` > `Generar calendario`
 
-> *Esto actualizará las semanas del mes seleccionado en el sistema.*
-
-### Paso 3: Cargar tus Tareas
+### Paso 4: Cargar tus Tareas
 Ve a la hoja **TASKS** y completa la información.
-Las columnas más importantes para el gráfico son:
+*   **Proyecto**: Selecciona un proyecto del desplegable (basado en la hoja PROJECTS).
+*   **ID**: Se recomienda dejar que el sistema lo gestione o usar IDs únicos.
 *   **Tarea**: Nombre de la actividad.
-*   **Inicio**: Fecha de inicio (dd/mm/aaaa).
-*   **Fin**: Fecha de fin (dd/mm/aaaa).
+*   **Inicio/Fin**: Fechas (dd/mm/aaaa).
+*   **Estado**: Selecciona del desplegable.
 
-> **Ojo:** Asegúrate de que la fecha de Inicio sea anterior o igual a la fecha de Fin.
-
-### Paso 4: Visualizar el Gantt
-Cuando hayas cargado o modificado tareas, ve al menú:
-`Gantt ⚙️` > `Refrescar vista Gantt`
-
-El sistema borrará la hoja **GANTT_VIEW** y la volverá a dibujar con:
-*   Tus tareas actualizadas.
-*   Las columnas de las semanas correspondientes.
-*   **Barras Azules** marcando la duración de cada tarea.
+### Paso 5: Visualizar el Gantt
+Menu: `Gantt ⚙️` > `Refrescar vista Gantt`
 
 ---
 
-## 🛡️ Herramientas de Seguridad
+## 🛡️ Herramientas de Calidad
 
 ### Validar Datos
-Si crees que hay errores (ej. fechas al revés), usa:
-`Gantt ⚙️` > `Validar datos`
-El sistema revisará todas las filas y te avisará si encuentra fechas inválidas o ilógicas (Inicio > Fin).
+En el menú: `Gantt ⚙️` > `Validar datos`
+El sistema revisará **PROJECTS** y **TASKS** buscando:
+*   IDs duplicados.
+*   Fechas ilógicas (Inicio > Fin).
+*   Tareas sin proyecto o con proyectos que no existen.
+*   Estados inválidos.
+Los errores se listan en la hoja **ISSUES**.
+
+### Gestionar Proyectos
+`Gantt ⚙️` > `Gestionar proyectos` permite ver un resumen rápido de los proyectos registrados.
 
 ### Cierre de Año (Rollover)
-Cuando termine el año y quieras limpiar el archivo:
-`Gantt ⚙️` > `Rollover anual`
-1.  El sistema guardará todas las tareas del año viejo en una hoja de archivo (ej. `ARCHIVE_2025`).
-2.  Mantendrá en `TASKS` solo las tareas futuras.
-3.  Avanzará el año en `CONFIG` automáticamente.
+`Gantt ⚙️` > `Rollover anual` archiva tareas pasadas y avanza el calendario.
 
 ---
 

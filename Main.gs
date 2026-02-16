@@ -100,9 +100,11 @@ function initStructure() {
   }
   
   // 5. Ensure GANTT_VIEW sheet
-  if (!ss.getSheetByName(SHEET_GANTT)) {
-    ss.insertSheet(SHEET_GANTT);
+  var ganttSheet = ss.getSheetByName(SHEET_GANTT);
+  if (!ganttSheet) {
+    ganttSheet = ss.insertSheet(SHEET_GANTT);
   }
+  ganttSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
   // 6. Ensure ISSUES sheet
   var issuesSheet = ss.getSheetByName(SHEET_ISSUES);
@@ -111,6 +113,7 @@ function initStructure() {
     issuesSheet.getRange(1, 1, 1, HEADERS_ISSUES.length).setValues([HEADERS_ISSUES]);
     issuesSheet.getRange(1, 1, 1, HEADERS_ISSUES.length).setFontWeight('bold');
   }
+  issuesSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por validación.');
 
   // --- Post-Structure Validation Setup ---
   
