@@ -1,7 +1,7 @@
 # ROADMAP.md
 
-> **Current Phase**: All phases complete (gap closure pending)
-> **Milestone**: v1.1 — Multi-Proyecto & Suite Google
+> **Current Phase**: Milestone 1.1 Complete
+> **Milestone**: v1.1 — Multi-Proyecto & Suite Google (COMPLETE ✅)
 
 ## Must-Haves (v1.1)
 - [x] Tabla PROJECTS + ProyectoID en TASKS
@@ -57,7 +57,7 @@
 **Objective**: Calendar, Drive carpetas, Gmail avisos.
 
 ### Phase 11: Gap Closure (Audit)
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Address technical debt and housekeeping gaps from milestone v1.1 audit.
 
 **Gaps to Close:**

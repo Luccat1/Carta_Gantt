@@ -120,7 +120,7 @@ function buildAlertHtml_(data) {
   if (data.overdue.length > 0) {
     html += '<h3 style="color: #c0392b;">🔴 Tareas Vencidas</h3><ul>';
     data.overdue.forEach(function(t) {
-      html += '<li><b>' + t.name + '</b> (' + t.project + ') - Venció el ' + Utilities.formatDate(t.due, Session.getScriptTimeZone(), 'dd/mm/yyyy') + '</li>';
+      html += '<li><b>' + t.name + '</b> (' + t.project + ') - Venció el ' + Utilities.formatDate(t.due, Session.getScriptTimeZone(), 'dd/MM/yyyy') + '</li>';
     });
     html += '</ul>';
   }

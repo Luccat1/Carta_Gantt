@@ -36,3 +36,4 @@ A "mini-Gantt" system embedded within Google Sheets using Apps Script. It decoup
 - [x] Dashboard KPIs computed from live data.
 - [x] Filtered views by project and responsible.
 - [x] AppSheet-ready data model with action triggers and setup guide.
+- [x] Google Suite integrations (Calendar sync, Drive folders, Gmail alerts).
