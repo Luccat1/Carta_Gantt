@@ -9,6 +9,7 @@ function onOpen() {
       .addItem('Generar calendario', 'buildCalendarFromConfig')
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
       .addItem('Refrescar Timeline', 'refreshTimelineData')
+      .addItem('Refrescar Dashboard', 'refreshDashboard')
       .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
       .addSeparator()
@@ -122,14 +123,14 @@ function initStructure() {
   }
   issuesSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por validación.');
 
-  // 7. Ensure TIMELINE_DATA sheet
-  var timelineSheet = ss.getSheetByName(SHEET_TIMELINE);
-  if (!timelineSheet) {
-    timelineSheet = ss.insertSheet(SHEET_TIMELINE);
-    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setValues([HEADERS_TIMELINE]);
-    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setFontWeight('bold');
-  }
   timelineSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
+
+  // 8. Ensure DASHBOARD sheet
+  var dashboardSheet = ss.getSheetByName(SHEET_DASHBOARD);
+  if (!dashboardSheet) {
+    dashboardSheet = ss.insertSheet(SHEET_DASHBOARD);
+  }
+  dashboardSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
   // --- Post-Structure Validation Setup ---
   
