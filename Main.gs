@@ -8,7 +8,7 @@ function onOpen() {
       .addItem('Inicializar / reparar estructura', 'initStructure')
       .addItem('Generar calendario', 'buildCalendarFromConfig')
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
-      .addItem('Validar datos', 'validateTasksData')
+      .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
       .addSeparator()
       .addItem('Gestionar proyectos', 'manageProjects')
