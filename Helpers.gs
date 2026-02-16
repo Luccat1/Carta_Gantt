@@ -113,3 +113,31 @@ function colToLetter_(colIndex) {
   }
   return letter;
 }
+
+/**
+ * Ensures all data rows in the given sheet have a value in the ID column.
+ * Generates missing IDs using generateTaskId_().
+ * @param {Sheet} sheet
+ * @param {string} idColumnName - The header name of the ID column.
+ */
+function ensureRowIds_(sheet, idColumnName) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  
+  var hMap = getHeaderMap_(sheet);
+  var idCol = getColIndex_(hMap, idColumnName);
+  var idRange = sheet.getRange(2, idCol, lastRow - 1, 1);
+  var ids = idRange.getValues();
+  var changed = false;
+  
+  for (var i = 0; i < ids.length; i++) {
+    if (!ids[i][0] || ids[i][0].toString().trim() === '') {
+      ids[i][0] = generateTaskId_();
+      changed = true;
+    }
+  }
+  
+  if (changed) {
+    idRange.setValues(ids);
+  }
+}

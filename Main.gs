@@ -99,16 +99,20 @@ function initStructure() {
     tasksSheet = ss.insertSheet(SHEET_TASKS);
   }
   
-  // Update or set TASKS headers
+  // Update or set TASKS headers (with auto-migration for missing columns)
   var currentTasksHeaders = tasksSheet.getLastColumn() > 0 ? tasksSheet.getRange(1, 1, 1, tasksSheet.getLastColumn()).getValues()[0] : [];
   if (currentTasksHeaders.length === 0) {
     tasksSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setValues([HEADERS_TASKS]);
     tasksSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setFontWeight('bold');
   } else {
-    // Basic sync: if headers don't match exactly, we alert but don't force overwrite to protect data
-    // In Phase 5 we will add a more robust migrator.
-    if (JSON.stringify(currentTasksHeaders) !== JSON.stringify(HEADERS_TASKS)) {
-      Logger.log('Advertencia: Los encabezados de TASKS no coinciden con la configuración. Se recomienda revisión manual.');
+    // Auto-add missing columns from HEADERS_TASKS
+    var currentHeaderStrings = currentTasksHeaders.map(function(h) { return h.toString().trim(); });
+    for (var h = 0; h < HEADERS_TASKS.length; h++) {
+      if (currentHeaderStrings.indexOf(HEADERS_TASKS[h]) === -1) {
+        var newCol = tasksSheet.getLastColumn() + 1;
+        tasksSheet.getRange(1, newCol).setValue(HEADERS_TASKS[h]).setFontWeight('bold');
+        Logger.log('Columna añadida a TASKS: ' + HEADERS_TASKS[h]);
+      }
     }
   }
   
@@ -144,8 +148,20 @@ function initStructure() {
   }
   issuesSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por validación.');
 
+  // 7. Ensure TIMELINE_DATA sheet
+  var timelineSheet = ss.getSheetByName(SHEET_TIMELINE);
+  if (!timelineSheet) {
+    timelineSheet = ss.insertSheet(SHEET_TIMELINE);
+    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setValues([HEADERS_TIMELINE]);
+    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setFontWeight('bold');
+  }
   timelineSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
+  // 8. Ensure DASHBOARD sheet
+  var dashboardSheet = ss.getSheetByName(SHEET_DASHBOARD);
+  if (!dashboardSheet) {
+    dashboardSheet = ss.insertSheet(SHEET_DASHBOARD);
+  }
   dashboardSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
   // 9. Ensure VIEWS sheet
@@ -208,9 +224,13 @@ function initStructure() {
 
   // --- Post-Structure Validation Setup ---
   
-  // Ensure Row IDs
-  ensureRowIds_(tasksSheet, 'ID');
-  ensureRowIds_(projectsSheet, 'ProyectoID');
+  // Ensure Row IDs (auto-generate missing IDs)
+  try {
+    ensureRowIds_(tasksSheet, 'ID');
+    ensureRowIds_(projectsSheet, 'ProyectoID');
+  } catch (e) {
+    Logger.log('ensureRowIds_ no disponible: ' + e.message);
+  }
   
   // Apply Estado validation to PROJECTS
   var pMap = getHeaderMap_(projectsSheet);
