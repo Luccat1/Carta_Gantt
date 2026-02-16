@@ -4,9 +4,9 @@
 > **Milestone**: v1.0
 
 ## Must-Haves (from SPEC)
-- [ ] Automated Gantt visualization
-- [ ] Menu-driven management
-- [ ] Safe annual accounting (rollover)
+- [x] Automated Gantt visualization
+- [x] Menu-driven management
+- [x] Safe annual accounting (rollover)
 
 ## Phases
 
@@ -30,6 +30,8 @@
 **Requirements**: REQ-05, REQ-07
 - Implement `rolloverToNextYear()` with archiving.
 - Add basic data validation (Dates, Start < End).
+
+## Future Phases / v1.1
 
 ### Phase 4: Polish & Flexibility
 **Status**: ⬜ Not Started
