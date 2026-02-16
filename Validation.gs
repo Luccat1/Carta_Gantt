@@ -12,16 +12,34 @@ function validateTasksData() {
     return;
   }
   
-  var range = tasksSheet.getRange(2, 1, lastRow - 1, HEADERS_TASKS.length);
+  var hMap = getHeaderMap_(tasksSheet);
+  var numHeaders = Object.keys(hMap).length;
+  
+  var range = tasksSheet.getRange(2, 1, lastRow - 1, numHeaders);
   var values = range.getValues();
   var errors = [];
   
+  var proyectoCol = getColIndex_(hMap, 'Proyecto') - 1;
+  var tareaCol = getColIndex_(hMap, 'Tarea') - 1;
+  var inicioCol = getColIndex_(hMap, 'Inicio') - 1;
+  var finCol = getColIndex_(hMap, 'Fin') - 1;
+  var estadoCol = getColIndex_(hMap, 'Estado') - 1;
+  
   for (var i = 0; i < values.length; i++) {
     var row = values[i];
-    var taskName = row[1]; // Col B
-    var startDate = row[5]; // Col F (Index 5)
-    var endDate = row[6]; // Col G (Index 6)
+    var proyectoName = row[proyectoCol];
+    var taskName = row[tareaCol];
+    var startDate = row[inicioCol];
+    var endDate = row[finCol];
+    var estadoVal = row[estadoCol];
     var rowNum = i + 2;
+    
+    // Skip completely empty rows
+    if (!proyectoName && !taskName && !startDate && !endDate && !estadoVal) continue;
+
+    // Check headers presence/validity
+    if (!proyectoName) errors.push('Fila ' + rowNum + ': Proyecto no especificado.');
+    if (!taskName) errors.push('Fila ' + rowNum + ': Nombre de tarea vacío.');
     
     // Check if dates are valid
     var startIsValid = startDate instanceof Date && !isNaN(startDate);
@@ -29,12 +47,16 @@ function validateTasksData() {
     
     if (startIsValid && endIsValid) {
       if (startDate > endDate) {
-        errors.push('Fila ' + rowNum + ' (' + taskName + '): Inicio (' + formatDate_(startDate) + ') es posterior a Fin (' + formatDate_(endDate) + ').');
+        errors.push('Fila ' + rowNum + ' (' + taskName + '): Inicio es posterior a Fin.');
       }
-    } else if (taskName !== '') {
-      // Warn if dates are missing/invalid but task exists, excluding completely empty rows
-         if (!startIsValid) errors.push('Fila ' + rowNum + ' (' + taskName + '): Fecha Inicio inválida.');
-         if (!endIsValid) errors.push('Fila ' + rowNum + ' (' + taskName + '): Fecha Fin inválida.');
+    } else {
+      if (!startIsValid) errors.push('Fila ' + rowNum + ' (' + taskName + '): Fecha Inicio inválida.');
+      if (!endIsValid) errors.push('Fila ' + rowNum + ' (' + taskName + '): Fecha Fin inválida.');
+    }
+
+    // Check status
+    if (!VALID_STATUSES.includes(estadoVal)) {
+      errors.push('Fila ' + rowNum + ' (' + taskName + '): Estado "' + estadoVal + '" no es válido.');
     }
   }
   
@@ -45,7 +67,7 @@ function validateTasksData() {
     }
     SpreadsheetApp.getUi().alert(message);
   } else {
-    SpreadsheetApp.getUi().alert('Validación completada: No se encontraron errores de fechas.');
+    SpreadsheetApp.getUi().alert('Validación completada: No se encontraron errores.');
   }
 }
 

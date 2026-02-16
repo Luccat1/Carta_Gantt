@@ -28,7 +28,6 @@ function rolloverToNextYear() {
   var archiveSheet = ss.getSheetByName(archiveSheetName);
   if (!archiveSheet) {
     archiveSheet = ss.insertSheet(archiveSheetName);
-    // Copy Header using dimensions from known headers
     archiveSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setValues([HEADERS_TASKS]);
     archiveSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setFontWeight('bold');
   }
@@ -36,7 +35,11 @@ function rolloverToNextYear() {
   // 4. Filter and Move Tasks
   var lastRow = tasksSheet.getLastRow();
   if (lastRow > 1) {
-    var range = tasksSheet.getRange(2, 1, lastRow - 1, HEADERS_TASKS.length);
+    var hMap = getHeaderMap_(tasksSheet);
+    var numHeaders = Object.keys(hMap).length;
+    var finColIdx = getColIndex_(hMap, 'Fin') - 1;
+    
+    var range = tasksSheet.getRange(2, 1, lastRow - 1, numHeaders);
     var values = range.getValues();
     var keepTasks = [];
     var archiveTasks = [];
@@ -44,8 +47,8 @@ function rolloverToNextYear() {
 
     for (var i = 0; i < values.length; i++) {
         var row = values[i];
-        // Col G is End Date (Index 6)
-        var endDate = row[6];
+        // Col Fin
+        var endDate = row[finColIdx];
         // Check if endDate is a valid date and strictly before cutoff
         if (endDate instanceof Date && endDate < cutoffDate) {
             archiveTasks.push(row);
@@ -57,7 +60,7 @@ function rolloverToNextYear() {
     // Write to Archive
     if (archiveTasks.length > 0) {
         var lastArchiveRow = archiveSheet.getLastRow();
-        archiveSheet.getRange(lastArchiveRow + 1, 1, archiveTasks.length, HEADERS_TASKS.length).setValues(archiveTasks);
+        archiveSheet.getRange(lastArchiveRow + 1, 1, archiveTasks.length, numHeaders).setValues(archiveTasks);
     }
 
     // Rewrite Tasks
@@ -66,7 +69,7 @@ function rolloverToNextYear() {
     
     // Write remaining
     if (keepTasks.length > 0) {
-        tasksSheet.getRange(2, 1, keepTasks.length, HEADERS_TASKS.length).setValues(keepTasks);
+        tasksSheet.getRange(2, 1, keepTasks.length, numHeaders).setValues(keepTasks);
     }
   }
 
