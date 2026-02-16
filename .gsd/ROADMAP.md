@@ -41,7 +41,7 @@
 **Objective**: TIMELINE_DATA sheet, colores por Proyecto/Área, selector multi-mes.
 
 ### Phase 7: Vistas & Dashboard
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Portfolio, por proyecto, por responsable, KPIs.
 
 ### Phase 8: UX & Automatización
