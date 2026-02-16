@@ -1,15 +1,15 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 7
+> **Current Phase**: All phases complete (gap closure pending)
 > **Milestone**: v1.1 — Multi-Proyecto & Suite Google
 
 ## Must-Haves (v1.1)
-- [ ] Tabla PROJECTS + ProyectoID en TASKS
-- [ ] ID autogenerado + Estado enum
-- [ ] Header-map (no depender de posiciones de columna)
-- [ ] Validador con hoja ISSUES
-- [ ] TIMELINE_DATA autogenerada
-- [ ] Tablas AppSheet-friendly
+- [x] Tabla PROJECTS + ProyectoID en TASKS
+- [x] ID autogenerado + Estado enum
+- [x] Header-map (no depender de posiciones de columna)
+- [x] Validador con hoja ISSUES
+- [x] TIMELINE_DATA autogenerada
+- [x] Tablas AppSheet-friendly
 
 ## Completed Phases (v1.0)
 
@@ -55,3 +55,15 @@
 ### Phase 10: Integraciones Suite Google
 **Status**: ✅ Complete
 **Objective**: Calendar, Drive carpetas, Gmail avisos.
+
+### Phase 11: Gap Closure (Audit)
+**Status**: ⬜ Not Started
+**Objective**: Address technical debt and housekeeping gaps from milestone v1.1 audit.
+
+**Gaps to Close:**
+- [ ] Fix Notifications.gs date format bug (`dd/mm` → `dd/MM`)
+- [ ] Clean up TODO.md (mark implemented items, create Backlog section)
+- [ ] Backfill VERIFICATION.md for phases 8, 9, 10
+- [ ] Rename `Calendar.gs` → `CalendarGrid.gs` for clarity
+- [ ] Add SPEC.md success criterion for Google Suite integrations
+- [ ] Update ROADMAP must-haves to checked
