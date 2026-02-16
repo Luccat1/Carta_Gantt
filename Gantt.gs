@@ -103,6 +103,9 @@ function refreshGanttView() {
 
     // 7. Auto-Sync Timeline Data
     refreshTimelineData();
+    
+    // 8. Auto-Sync Dashboard
+    refreshDashboard();
   }
   
   SpreadsheetApp.flush();
