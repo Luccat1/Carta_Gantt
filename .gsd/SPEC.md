@@ -32,4 +32,6 @@ A "mini-Gantt" system embedded within Google Sheets using Apps Script. It decoup
 - [x] System handles columns dynamically (Header Mapping) rather than by fixed index.
 - [x] Robust validation engine reports errors to a separate `ISSUES` sheet.
 - [x] Multi-project support via `PROJECTS` sheet and relational dropdowns.
-- [ ] Automated TIMELINE_DATA generation for native Google Timeline (Phase 6).
+- [x] Automated TIMELINE_DATA generation for native Google Timeline (Phase 6).
+- [x] Dashboard KPIs computed from live data.
+- [x] Filtered views by project and responsible.
