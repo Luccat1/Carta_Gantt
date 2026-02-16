@@ -4,6 +4,11 @@
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
+  
+  var viewsMenu = ui.createMenu('Vistas 📂')
+      .addItem('Vista por Proyecto', 'viewByProject')
+      .addItem('Vista por Responsable', 'viewByResponsible');
+  
   ui.createMenu('Gantt ⚙️')
       .addItem('➕ Nueva tarea', 'showNewTaskSidebar')
       .addSeparator()
@@ -14,10 +19,7 @@ function onOpen() {
       .addItem('Refrescar Dashboard', 'refreshDashboard')
       .addItem('Actualizar estados', 'updateProjectStatuses')
       .addSeparator()
-      .createMenu('Vistas 📂')
-          .addItem('Vista por Proyecto', 'viewByProject')
-          .addItem('Vista por Responsable', 'viewByResponsible')
-          .addToUi()
+      .addSubMenu(viewsMenu)
       .addItem('📋 Aplicar plantilla', 'applyTemplate')
       .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
@@ -34,6 +36,7 @@ function onOpen() {
       .addItem('Gestionar proyectos', 'manageProjects')
       .addToUi();
 }
+
 
 /**
  * Placeholder for project management UI.
