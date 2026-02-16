@@ -154,7 +154,30 @@ function initStructure() {
   }
   templatesSheet.protect().setWarningOnly(true).setDescription('Define plantillas de tareas aquí.');
 
+  // 11. Ensure APPSHEET_CONFIG sheet
+  var appsheetSheet = ss.getSheetByName(SHEET_APPSHEET);
+  if (!appsheetSheet) {
+    appsheetSheet = ss.insertSheet(SHEET_APPSHEET);
+    appsheetSheet.getRange(1, 1, 1, HEADERS_APPSHEET.length).setValues([HEADERS_APPSHEET]);
+    appsheetSheet.getRange(1, 1, 1, HEADERS_APPSHEET.length).setFontWeight('bold');
+    
+    // Seed rows
+    var seedData = [
+      ['Tabla Principal', 'TASKS', 'Hoja de tareas para AppSheet'],
+      ['Tabla Proyectos', 'PROJECTS', 'Hoja de proyectos para AppSheet'],
+      ['Columna Clave TASKS', 'ID', 'Clave única de cada tarea'],
+      ['Columna Clave PROJECTS', 'ProyectoID', 'Clave única de cada proyecto'],
+      ['Columna Ref', 'Proyecto', 'Referencia de TASKS→PROJECTS (usa Nombre)']
+    ];
+    appsheetSheet.getRange(2, 1, seedData.length, seedData[0].length).setValues(seedData);
+  }
+  appsheetSheet.protect().setWarningOnly(true).setDescription('Hoja de configuración para AppSheet.');
+
   // --- Post-Structure Validation Setup ---
+  
+  // Ensure Row IDs
+  ensureRowIds_(tasksSheet, 'ID');
+  ensureRowIds_(projectsSheet, 'ProyectoID');
   
   // Apply Estado validation to PROJECTS
   var pMap = getHeaderMap_(projectsSheet);

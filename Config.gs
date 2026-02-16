@@ -12,6 +12,7 @@ var SHEET_TIMELINE = 'TIMELINE_DATA';
 var SHEET_DASHBOARD = 'DASHBOARD';
 var SHEET_VIEWS = 'VIEWS';
 var SHEET_TEMPLATES = 'TEMPLATES';
+var SHEET_APPSHEET = 'APPSHEET_CONFIG';
 
 // Headers for the TEMPLATES sheet
 var HEADERS_TEMPLATES = [
@@ -22,6 +23,9 @@ var HEADERS_TEMPLATES = [
   'Responsable', 
   'DuraciónDías'
 ];
+
+// Headers for the APPSHEET_CONFIG sheet
+var HEADERS_APPSHEET = ['Parámetro', 'Valor', 'Descripción'];
 
 // Headers for the ISSUES sheet
 var HEADERS_ISSUES = [
@@ -46,7 +50,8 @@ var HEADERS_TASKS = [
   'Fin', 
   'Estado', 
   'Etiquetas', 
-  'Material'
+  'Material',
+  '_Acción'
 ];
 
 // Headers for the PROJECTS sheet
