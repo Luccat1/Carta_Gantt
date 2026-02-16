@@ -8,6 +8,7 @@ var SHEET_PROJECTS = 'PROJECTS';
 var SHEET_LOOKUPS = 'LOOKUPS';
 var SHEET_GANTT = 'GANTT_VIEW';
 var SHEET_ISSUES = 'ISSUES';
+var SHEET_TIMELINE = 'TIMELINE_DATA';
 
 // Headers for the ISSUES sheet
 var HEADERS_ISSUES = [
@@ -44,6 +45,14 @@ var HEADERS_PROJECTS = [
   'Fin', 
   'Estado', 
   'Color'
+];
+
+// Headers for the TIMELINE_DATA sheet
+var HEADERS_TIMELINE = [
+  'Proyecto', 
+  'Tarea', 
+  'Inicio', 
+  'Fin'
 ];
 
 // Valid Statuses for validation

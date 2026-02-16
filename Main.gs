@@ -8,6 +8,7 @@ function onOpen() {
       .addItem('Inicializar / reparar estructura', 'initStructure')
       .addItem('Generar calendario', 'buildCalendarFromConfig')
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
+      .addItem('Refrescar Timeline', 'refreshTimelineData')
       .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
       .addSeparator()
@@ -120,6 +121,15 @@ function initStructure() {
     issuesSheet.getRange(1, 1, 1, HEADERS_ISSUES.length).setFontWeight('bold');
   }
   issuesSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por validación.');
+
+  // 7. Ensure TIMELINE_DATA sheet
+  var timelineSheet = ss.getSheetByName(SHEET_TIMELINE);
+  if (!timelineSheet) {
+    timelineSheet = ss.insertSheet(SHEET_TIMELINE);
+    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setValues([HEADERS_TIMELINE]);
+    timelineSheet.getRange(1, 1, 1, HEADERS_TIMELINE.length).setFontWeight('bold');
+  }
+  timelineSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
   // --- Post-Structure Validation Setup ---
   

@@ -100,6 +100,9 @@ function refreshGanttView() {
     if (typeof applyOverlapFormatting_ === 'function') {
       applyOverlapFormatting_(ganttSheet, hMap, weekData, validTasks, projectColorMap);
     }
+
+    // 7. Auto-Sync Timeline Data
+    refreshTimelineData();
   }
   
   SpreadsheetApp.flush();
@@ -160,4 +163,54 @@ function applyOverlapFormatting_(sheet, hMap, weekData, validTasks, projectColor
   
   // Apply all backgrounds in a single batch operation
   rangeToFormat.setBackgrounds(backgrounds);
+}
+
+/**
+ * Refreshes the TIMELINE_DATA sheet with a structured 4-column format.
+ */
+function refreshTimelineData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var tasksSheet = ss.getSheetByName(SHEET_TASKS);
+  var timelineSheet = ss.getSheetByName(SHEET_TIMELINE);
+  
+  if (!tasksSheet || !timelineSheet) {
+    Logger.log('Error: Hojas TASKS o TIMELINE_DATA no encontradas.');
+    return;
+  }
+  
+  // Clear existing data rows (2 downwards)
+  var lastTimelineRow = timelineSheet.getLastRow();
+  if (lastTimelineRow > 1) {
+    timelineSheet.getRange(2, 1, lastTimelineRow - 1, HEADERS_TIMELINE.length).clear();
+  }
+  
+  var hMap = getHeaderMap_(tasksSheet);
+  var lastTaskRow = tasksSheet.getLastRow();
+  if (lastTaskRow < 2) return;
+  
+  var tasksValues = tasksSheet.getRange(2, 1, lastTaskRow - 1, Object.keys(hMap).length).getValues();
+  
+  var proyectoIdx = getColIndex_(hMap, 'Proyecto') - 1;
+  var tareaIdx = getColIndex_(hMap, 'Tarea') - 1;
+  var inicioIdx = getColIndex_(hMap, 'Inicio') - 1;
+  var finIdx = getColIndex_(hMap, 'Fin') - 1;
+  
+  var timelineRows = [];
+  tasksValues.forEach(function(row) {
+    var proyecto = row[proyectoIdx];
+    var tarea = row[tareaIdx];
+    var inicio = row[inicioIdx];
+    var fin = row[finIdx];
+    
+    // Filter out rows missing required chart data
+    if (proyecto && tarea && inicio instanceof Date && !isNaN(inicio.getTime()) && fin instanceof Date && !isNaN(fin.getTime())) {
+      timelineRows.push([proyecto, tarea, inicio, fin]);
+    }
+  });
+  
+  if (timelineRows.length > 0) {
+    timelineSheet.getRange(2, 1, timelineRows.length, HEADERS_TIMELINE.length).setValues(timelineRows);
+  }
+  
+  Logger.log('TIMELINE_DATA refrescada: ' + timelineRows.length + ' tareas.');
 }
