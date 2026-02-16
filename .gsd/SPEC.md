@@ -35,3 +35,4 @@ A "mini-Gantt" system embedded within Google Sheets using Apps Script. It decoup
 - [x] Automated TIMELINE_DATA generation for native Google Timeline (Phase 6).
 - [x] Dashboard KPIs computed from live data.
 - [x] Filtered views by project and responsible.
+- [x] AppSheet-ready data model with action triggers and setup guide.

@@ -17,6 +17,8 @@ El sistema utiliza hojas clave. No les cambies el nombre para evitar errores.
 *   **TIMELINE_DATA**: Datos estructurados para Gráficos de Tiempo nativos de Google. **NO editar**.
 *   **DASHBOARD**: Resumen de KPIs, estados y salud de proyectos. Se actualiza automáticamente.
 *   **VIEWS**: Vistas filtradas (por Proyecto/Responsable). Generadas bajo demanda desde el menú.
+*   **APPSHEET_CONFIG**: Metadatos para configurar AppSheet.
+*   **INSTRUCCIONES**: Guía paso a paso para conectar con AppSheet.
 *   **LOOKUPS**: Hoja auxiliar para cálculos internos.
 
 ---
@@ -65,6 +67,18 @@ Los errores se listan en la hoja **ISSUES**.
 
 ### Cierre de Año (Rollover)
 `Gantt ⚙️` > `Rollover anual` archiva tareas pasadas y avanza el calendario.
+
+---
+
+---
+
+## 📱 Integración con AppSheet
+
+Este sistema está preparado para conectarse con **AppSheet**, permitiéndote gestionar tus tareas desde el móvil.
+
+*   **Tablas Clave**: `TASKS` (tareas) y `PROJECTS` (proyectos).
+*   **Acciones Remotas**: Puedes disparar funciones (como refrescar el Gantt) escribiendo en la columna `_Acción` de la hoja `TASKS`.
+*   **Configuración**: Ve a la hoja **INSTRUCCIONES** dentro del archivo para la guía paso a paso.
 
 ---
 

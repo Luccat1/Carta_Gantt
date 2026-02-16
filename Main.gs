@@ -175,6 +175,27 @@ function initStructure() {
   }
   appsheetSheet.protect().setWarningOnly(true).setDescription('Hoja de configuración para AppSheet.');
 
+  // 12. Ensure INSTRUCCIONES sheet
+  var instructionsSheet = ss.getSheetByName(SHEET_INSTRUCCIONES);
+  if (!instructionsSheet) {
+    instructionsSheet = ss.insertSheet(SHEET_INSTRUCCIONES);
+    instructionsSheet.getRange(1, 1, 1, 3).setValues([['Paso', 'Instrucción', 'Notas']]);
+    instructionsSheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+    
+    var guideData = [
+      ['1', 'Abrir AppSheet (appsheet.com) e iniciar sesión con tu cuenta Google', ''],
+      ['2', 'Crear nueva app → "Start with existing data" → seleccionar este Google Sheet', ''],
+      ['3', 'AppSheet detectará automáticamente TASKS y PROJECTS', 'Claves: ID y ProyectoID'],
+      ['4', 'Configurar columna Proyecto en TASKS como Ref a PROJECTS', 'Tipo: Ref (usa Nombre)'],
+      ['5', 'Para ejecutar acciones: escribir en la columna _Acción de TASKS', 'Valores: Refrescar, Estados, Dashboard'],
+      ['6', 'Ejecutar "⚡ Configurar trigger AppSheet" desde el menú Gantt ⚙️', 'Requerido para acciones'],
+      ['7', 'Las hojas GANTT_VIEW, DASHBOARD y VIEWS son de solo lectura', 'No agregar a AppSheet']
+    ];
+    instructionsSheet.getRange(2, 1, guideData.length, 3).setValues(guideData);
+    instructionsSheet.autoResizeColumns(1, 3);
+  }
+  instructionsSheet.protect().setWarningOnly(true).setDescription('Guía de configuración AppSheet.');
+
   // --- Post-Structure Validation Setup ---
   
   // Ensure Row IDs
@@ -204,6 +225,16 @@ function initStructure() {
     tRange.setDataValidation(tRule);
   } catch (e) {
     Logger.log('No se pudo aplicar validación de Proyecto en TASKS: ' + e.message);
+  }
+
+  // Apply Action validation to TASKS
+  try {
+    var tActionIdx = getColIndex_(tMap, '_Acción');
+    var actions = ['Refrescar', 'Estados', 'Dashboard'];
+    var actionRule = SpreadsheetApp.newDataValidation().requireValueInList(actions).setAllowInvalid(true).build();
+    tasksSheet.getRange(2, tActionIdx, tasksSheet.getMaxRows() - 1, 1).setDataValidation(actionRule);
+  } catch (e) {
+    Logger.log('No se pudo aplicar validación de Acción en TASKS: ' + e.message);
   }
   
   SpreadsheetApp.getUi().alert('Estructura inicializada / verificada correctamente.');

@@ -45,7 +45,7 @@
 **Objective**: Portfolio, por proyecto, por responsable, KPIs.
 
 ### Phase 8: UX & Automatización
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Auto-estados, Sidebar nueva tarea, rollover mejorado, plantillas.
 
 ### Phase 9: AppSheet
