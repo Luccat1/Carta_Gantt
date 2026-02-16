@@ -59,23 +59,27 @@ function refreshGanttView() {
   // 4. Map Data
   var lastTaskRow = tasksSheet.getLastRow();
   if (lastTaskRow > 1) {
+    var hMap = getHeaderMap_(tasksSheet);
+    var numHeaders = Object.keys(hMap).length;
+    
     // Read all task data (excluding header)
-    var tasksRange = tasksSheet.getRange(2, 1, lastTaskRow - 1, HEADERS_TASKS.length);
+    var tasksRange = tasksSheet.getRange(2, 1, lastTaskRow - 1, numHeaders);
     var tasksValues = tasksRange.getValues();
     
-    // Filter empty rows (if any) based on 'Tarea' (Column B -> index 1)
+    // Filter empty rows (if any) based on 'Tarea'
+    var tareaColIdx = getColIndex_(hMap, 'Tarea') - 1;
     var validTasks = tasksValues.filter(function(row) {
-      return row[1] !== ''; 
+      return row[tareaColIdx] !== ''; 
     });
     
     if (validTasks.length > 0) {
       // Write data to Gantt View
-      ganttSheet.getRange(2, 1, validTasks.length, HEADERS_TASKS.length).setValues(validTasks);
+      ganttSheet.getRange(2, 1, validTasks.length, numHeaders).setValues(validTasks);
     }
     
-    // 5. Apply Conditional Formatting (Plan 2.2 placeholder -> to be implemented next)
+    // 5. Apply Conditional Formatting
     if (typeof applyOverlapConditionalFormatting_ === 'function') {
-      applyOverlapConditionalFormatting_(ganttSheet, HEADERS_TASKS.length, weekData);
+      applyOverlapConditionalFormatting_(ganttSheet, hMap, weekData);
     }
   }
   
@@ -88,10 +92,10 @@ function refreshGanttView() {
  * Applies conditional formatting to the Gantt grid.
  * 
  * @param {Sheet} sheet - The GANTT_VIEW sheet.
- * @param {number} numStaticCols - Number of static columns (before week columns).
+ * @param {Object} hMap - Header map {name: index}.
  * @param {Array<Object>} weekData - Array of week objects {week, start, end, label}.
  */
-function applyOverlapConditionalFormatting_(sheet, numStaticCols, weekData) {
+function applyOverlapConditionalFormatting_(sheet, hMap, weekData) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return; // No data
   
@@ -99,25 +103,26 @@ function applyOverlapConditionalFormatting_(sheet, numStaticCols, weekData) {
   sheet.clearConditionalFormatRules();
   
   var rules = [];
+  var numStaticCols = Object.keys(hMap).length;
   
-  // Columns F and G are fixed for Start/End in TASKS structure
-  // F = $F2 (Inicio), G = $G2 (Fin)
-  // Note: R1C1 notation or direct A1 notation with absolute columns is needed.
-  // We will use A1 notation: $F2, $G2
+  // Resolve Inicio and Fin columns
+  var inicioCol = getColIndex_(hMap, 'Inicio');
+  var finCol = getColIndex_(hMap, 'Fin');
+  
+  var inicioLetter = colToLetter_(inicioCol);
+  var finLetter = colToLetter_(finCol);
   
   // Iterate over each week column
   for (var i = 0; i < weekData.length; i++) {
     var week = weekData[i];
     
     // Calculate the column index for this week (1-based)
-    // Static columns + 1 (for first week) + i
     var colIndex = numStaticCols + 1 + i;
     
     // Define the range for this specific column (Row 2 to LastRow)
     var range = sheet.getRange(2, colIndex, lastRow - 1, 1);
     
     // Date formatting for formula
-    // DATE(yyyy, mm, dd)
     var wStart = week.start;
     var wEnd = week.end;
     
@@ -129,11 +134,8 @@ function applyOverlapConditionalFormatting_(sheet, numStaticCols, weekData) {
     var eM = wEnd.getMonth() + 1;
     var eD = wEnd.getDate();
     
-    // Formula: =AND($F2 <= WeekEnd, $G2 >= WeekStart)
-    // Meaning: Task starts before or during week end AND Task ends after or during week start.
-    // Overlap logic.
-    
-    var formula = '=AND($F2<=DATE(' + eY + ',' + eM + ',' + eD + '),$G2>=DATE(' + sY + ',' + sM + ',' + sD + '))';
+    // Formula: =AND($InicioCol2 <= WeekEnd, $FinCol2 >= WeekStart)
+    var formula = '=AND($' + inicioLetter + '2<=DATE(' + eY + ',' + eM + ',' + eD + '),$' + finLetter + '2>=DATE(' + sY + ',' + sM + ',' + sD + '))';
     
     var rule = SpreadsheetApp.newConditionalFormatRule()
       .whenFormulaSatisfied(formula)
