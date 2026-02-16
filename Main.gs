@@ -10,7 +10,33 @@ function onOpen() {
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
       .addItem('Validar datos', 'validateTasksData')
       .addItem('Rollover anual', 'rolloverToNextYear')
+      .addSeparator()
+      .addItem('Gestionar proyectos', 'manageProjects')
       .addToUi();
+}
+
+/**
+ * Placeholder for project management UI.
+ */
+function manageProjects() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_PROJECTS);
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert('Error: Hoja PROJECTS no encontrada.');
+    return;
+  }
+  
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    SpreadsheetApp.getUi().alert('No hay proyectos registrados.');
+    return;
+  }
+  
+  var msg = 'Proyectos actuales:\n';
+  for (var i = 1; i < data.length; i++) {
+    msg += '- ' + data[i][1] + ' (' + data[i][5] + ')\n';
+  }
+  SpreadsheetApp.getUi().alert(msg);
 }
 
 /**
@@ -30,23 +56,50 @@ function initStructure() {
     configSheet.getRange('B2').setValue(DEFAULT_MONTH);
   }
   
-  // 2. Ensure TASKS sheet
+  // 2. Ensure PROJECTS sheet
+  var projectsSheet = ss.getSheetByName(SHEET_PROJECTS);
+  if (!projectsSheet) {
+    projectsSheet = ss.insertSheet(SHEET_PROJECTS);
+    projectsSheet.getRange(1, 1, 1, HEADERS_PROJECTS.length).setValues([HEADERS_PROJECTS]);
+    projectsSheet.getRange(1, 1, 1, HEADERS_PROJECTS.length).setFontWeight('bold');
+  }
+  
+  // 3. Ensure TASKS sheet
   var tasksSheet = ss.getSheetByName(SHEET_TASKS);
   if (!tasksSheet) {
     tasksSheet = ss.insertSheet(SHEET_TASKS);
   }
   
-  // Check if TASKS header is empty or missing
-  if (tasksSheet.getLastRow() === 0) {
+  // Update or set TASKS headers
+  var currentTasksHeaders = tasksSheet.getLastColumn() > 0 ? tasksSheet.getRange(1, 1, 1, tasksSheet.getLastColumn()).getValues()[0] : [];
+  if (currentTasksHeaders.length === 0) {
     tasksSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setValues([HEADERS_TASKS]);
+    tasksSheet.getRange(1, 1, 1, HEADERS_TASKS.length).setFontWeight('bold');
+  } else {
+    // Basic sync: if headers don't match exactly, we alert but don't force overwrite to protect data
+    // In Phase 5 we will add a more robust migrator.
+    if (JSON.stringify(currentTasksHeaders) !== JSON.stringify(HEADERS_TASKS)) {
+      Logger.log('Advertencia: Los encabezados de TASKS no coinciden con la configuración. Se recomienda revisión manual.');
+    }
   }
   
-  // 3. Ensure LOOKUPS sheet
+  // Add Estado validation to TASKS
+  var hMap = getHeaderMap_(tasksSheet);
+  try {
+    var estadoCol = getColIndex_(hMap, 'Estado');
+    var range = tasksSheet.getRange(2, estadoCol, tasksSheet.getMaxRows() - 1, 1);
+    var rule = SpreadsheetApp.newDataValidation().requireValueInList(VALID_STATUSES).build();
+    range.setDataValidation(rule);
+  } catch (e) {
+    Logger.log('No se pudo aplicar validación de Estado: ' + e.message);
+  }
+  
+  // 4. Ensure LOOKUPS sheet
   if (!ss.getSheetByName(SHEET_LOOKUPS)) {
     ss.insertSheet(SHEET_LOOKUPS);
   }
   
-  // 4. Ensure GANTT_VIEW sheet
+  // 5. Ensure GANTT_VIEW sheet
   if (!ss.getSheetByName(SHEET_GANTT)) {
     ss.insertSheet(SHEET_GANTT);
   }
