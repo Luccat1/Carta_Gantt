@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 6
+> **Current Phase**: Phase 7
 > **Milestone**: v1.1 — Multi-Proyecto & Suite Google
 
 ## Must-Haves (v1.1)
@@ -37,7 +37,7 @@
 **Objective**: Robust validation engine with ISSUES reporting and sheet protections.
 
 ### Phase 6: Timeline & Multi-Mes
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: TIMELINE_DATA sheet, colores por Proyecto/Área, selector multi-mes.
 
 ### Phase 7: Vistas & Dashboard
