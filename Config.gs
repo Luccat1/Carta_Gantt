@@ -58,4 +58,5 @@ var VALID_STATUSES = [
 // Configuration Defaults
 var DEFAULT_YEAR = new Date().getFullYear();
 var DEFAULT_MONTH = new Date().getMonth() + 1; // 1-12
+var DEFAULT_MONTH_END = DEFAULT_MONTH;
 var DEFAULT_COLOR = '#4a86e8';

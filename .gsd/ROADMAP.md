@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 4
+> **Current Phase**: Phase 6
 > **Milestone**: v1.1 — Multi-Proyecto & Suite Google
 
 ## Must-Haves (v1.1)
@@ -25,7 +25,7 @@
 ## Active Phases (v1.1)
 
 ### Phase 4: Modelo de Datos v2
-**Status**: 🔄 Planning
+**Status**: ✅ Complete
 **Objective**: Restructure data model for multi-project support. Add PROJECTS sheet, ProyectoID, auto-ID, Estado enum, and header-map utility.
 - Add PROJECTS sheet (ProyectoID, Nombre, Owner, Fechas, Estado, Color).
 - Expand TASKS headers: Proyecto, ID autogenerado, Estado normalizado.
@@ -33,7 +33,7 @@
 - Update all existing scripts to use header-map instead of hardcoded indices.
 
 ### Phase 5: Validación & Contrato
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Robust validation engine with ISSUES reporting and sheet protections.
 
 ### Phase 6: Timeline & Multi-Mes

@@ -80,3 +80,5 @@
 
 - [ ] **#REF! en selector de mes**: inicio_mes/fin_mes dependen de rangos movidos. Reconstruir desde CONFIG de forma robusta. `high` — 2026-02-16
 - [ ] **Columnas Estado e ID incompletas**: Sin estar completas/forzadas, no hay multi-proyecto fiable. `high` — 2026-02-16
+- [ ] **Data validation (dropdowns) en todos los campos posibles**: Agregar desplegables/verificación de datos en Estado (PROJECTS), Proyecto (TASKS, desde PROJECTS), y cualquier campo con valores predefinidos, para minimizar error humano por texto libre. `high` — 2026-02-16
+- [ ] **Actualizar documentación del repositorio**: Mantener README.md, SPEC.md, ARCHITECTURE.md y demás docs de lectura sincronizados con el estado actual del código, para que colaboradores y usuarios tengan información precisa. `medium` — 2026-02-16

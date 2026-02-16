@@ -15,13 +15,19 @@ function buildCalendarFromConfig() {
     return;
   }
 
-  // Read Year and Month from B1, B2
+  // Read Year, Month (Start), and Month (End)
   var year = configSheet.getRange('B1').getValue();
-  var month = configSheet.getRange('B2').getValue();
+  var monthStart = configSheet.getRange('B2').getValue();
+  var monthEnd = configSheet.getRange('B3').getValue();
   
-  if (!year || !month) {
+  if (!year || !monthStart) {
     SpreadsheetApp.getUi().alert('Error: Año o Mes inválidos en CONFIG.');
     return;
+  }
+
+  // Default monthEnd to monthStart if not provided or invalid
+  if (!monthEnd || monthEnd < 1 || monthEnd > 12) {
+    monthEnd = monthStart;
   }
 
   // Clear existing lookups
@@ -30,15 +36,42 @@ function buildCalendarFromConfig() {
   // Set Headers
   lookupSheet.getRange('A1:D1').setValues([['Semana', 'Inicio', 'Fin', 'Etiqueta']]);
   
-  // Get weeks
-  var weeks = weeksOfMonth_(year, month);
-  
-  // Write rows
-  var rows = weeks.map(function(w, i) {
-    return ['S' + (i + 1), w.start, w.end, w.label];
+  var allRows = [];
+  var currentYear = year;
+  var currentMonth = monthStart;
+  var weekCounter = 1;
+
+  // Loop through months logic:
+  // If monthEnd < monthStart, it implies a year wrap (e.g., Nov to Feb)
+  var monthsToProcess = [];
+  if (monthEnd >= monthStart) {
+    for (var m = monthStart; m <= monthEnd; m++) {
+      monthsToProcess.push({ month: m, year: currentYear });
+    }
+  } else {
+    // Year wrap: monthStart to 12, then 1 to monthEnd
+    for (var m = monthStart; m <= 12; m++) {
+      monthsToProcess.push({ month: m, year: currentYear });
+    }
+    currentYear++;
+    for (var m = 1; m <= monthEnd; m++) {
+      monthsToProcess.push({ month: m, year: currentYear });
+    }
+  }
+
+  monthsToProcess.forEach(function(item) {
+    var weeks = weeksOfMonth_(item.year, item.month);
+    weeks.forEach(function(w) {
+      allRows.push(['S' + weekCounter++, w.start, w.end, w.label]);
+    });
   });
   
-  lookupSheet.getRange(2, 1, rows.length, 4).setValues(rows);
+  if (allRows.length > 0) {
+    lookupSheet.getRange(2, 1, allRows.length, 4).setValues(allRows);
+  }
   
-  SpreadsheetApp.getUi().alert('Calendario generado para: ' + monthNameEs_(month) + ' ' + year);
+  var labelStart = monthNameEs_(monthStart) + ' ' + year;
+  var labelEnd = monthNameEs_(monthEnd) + ' ' + (monthEnd < monthStart ? year + 1 : year);
+  
+  SpreadsheetApp.getUi().alert('Calendario generado: ' + labelStart + (monthStart !== monthEnd ? ' – ' + labelEnd : ''));
 }

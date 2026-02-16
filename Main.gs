@@ -50,10 +50,16 @@ function initStructure() {
   var configSheet = ss.getSheetByName(SHEET_CONFIG);
   if (!configSheet) {
     configSheet = ss.insertSheet(SHEET_CONFIG);
-    configSheet.getRange('A1').setValue('Año');
-    configSheet.getRange('A2').setValue('Mes');
+    configSheet.getRange('A1:A3').setValues([['Año'], ['Mes'], ['MesFin']]);
     configSheet.getRange('B1').setValue(DEFAULT_YEAR);
     configSheet.getRange('B2').setValue(DEFAULT_MONTH);
+    configSheet.getRange('B3').setValue(DEFAULT_MONTH_END);
+  } else {
+    // Ensure MesFin row exists in established CONFIG sheets
+    if (configSheet.getLastRow() < 3) {
+      configSheet.getRange('A3').setValue('MesFin');
+      configSheet.getRange('B3').setValue(configSheet.getRange('B2').getValue()); // Default to same as Mes
+    }
   }
   
   // 2. Ensure PROJECTS sheet
