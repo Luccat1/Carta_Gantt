@@ -353,3 +353,114 @@ function refreshDashboard() {
   
   SpreadsheetApp.flush();
 }
+
+/**
+ * Generates a filtered view of tasks grouped by project in the VIEWS sheet.
+ */
+function viewByProject() {
+  generateGroupedView_('Proyecto', [
+    'Tarea', 
+    'Responsable', 
+    'Inicio', 
+    'Fin', 
+    'Estado'
+  ], '📁');
+  SpreadsheetApp.getUi().alert('Vista por proyecto generada.');
+}
+
+/**
+ * Generates a filtered view of tasks grouped by responsible person in the VIEWS sheet.
+ */
+function viewByResponsible() {
+  generateGroupedView_('Responsable', [
+    'Proyecto', 
+    'Tarea', 
+    'Inicio', 
+    'Fin', 
+    'Estado'
+  ], '👤');
+  SpreadsheetApp.getUi().alert('Vista por responsable generada.');
+}
+
+/**
+ * Helper to generate grouped views.
+ * 
+ * @param {string} groupByKey - The column header name to group by.
+ * @param {Array<string>} detailHeaders - The column header names to show as details.
+ * @param {string} icon - Icon prefix for the group header.
+ */
+function generateGroupedView_(groupByKey, detailHeaders, icon) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var tasksSheet = ss.getSheetByName(SHEET_TASKS);
+  var viewsSheet = ss.getSheetByName(SHEET_VIEWS);
+  
+  if (!tasksSheet || !viewsSheet) return;
+  
+  viewsSheet.clear();
+  var hMap = getHeaderMap_(tasksSheet);
+  var lastRow = tasksSheet.getLastRow();
+  if (lastRow < 2) return;
+  
+  var data = tasksSheet.getRange(2, 1, lastRow - 1, Object.keys(hMap).length).getValues();
+  var groupIdx = getColIndex_(hMap, groupByKey) - 1;
+  
+  // 1. Group Data
+  var groups = {}; // {groupName: [row, row, ...]}
+  data.forEach(function(row) {
+    if (!row[getColIndex_(hMap, 'Tarea') - 1]) return; // Skip empty tasks
+    
+    var val = row[groupIdx] || 'Sin asignar';
+    if (!groups[val]) groups[val] = [];
+    groups[val].push(row);
+  });
+  
+  // 2. Sort Group Names
+  var groupNames = Object.keys(groups).sort();
+  
+  // 3. Prepare Output
+  var output = [];
+  var formats = []; // {row, col, numRows, numCols, bold, merge}
+  
+  groupNames.forEach(function(gName) {
+    // Header Row
+    var headerRowIdx = output.length + 1;
+    output.push([icon + ' ' + gName, '', '', '', '', '']); // 6 columns
+    formats.push({row: headerRowIdx, col: 1, r: 1, c: 5, bold: true, merge: true});
+    
+    // Sub-headers
+    output.push(detailHeaders);
+    formats.push({row: output.length, col: 1, r: 1, c: detailHeaders.length, bold: true, merge: false});
+    
+    // Task Data (sorted by start date)
+    var tasks = groups[gName].sort(function(a, b) {
+      var d1 = a[getColIndex_(hMap, 'Inicio') - 1];
+      var d2 = b[getColIndex_(hMap, 'Inicio') - 1];
+      return (d1 instanceof Date ? d1 : 0) - (d2 instanceof Date ? d2 : 0);
+    });
+    
+    tasks.forEach(function(row) {
+      var detailRow = detailHeaders.map(function(h) {
+        var val = row[getColIndex_(hMap, h) - 1];
+        if (val instanceof Date) return val.toLocaleDateString();
+        return val;
+      });
+      output.push(detailRow);
+    });
+    
+    output.push(['', '', '', '', '', '']); // Spacer
+  });
+  
+  // 4. Write Data
+  if (output.length > 0) {
+    viewsSheet.getRange(1, 1, output.length, detailHeaders.length).setValues(output.map(function(r) {
+       return r.slice(0, detailHeaders.length);
+    }));
+    
+    // Apply Formatting
+    formats.forEach(function(f) {
+      var range = viewsSheet.getRange(f.row, f.col, f.r, f.c);
+      if (f.bold) range.setFontWeight('bold');
+      if (f.merge) range.mergeAcross();
+    });
+  }
+}
