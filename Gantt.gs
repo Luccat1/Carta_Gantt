@@ -77,74 +77,87 @@ function refreshGanttView() {
       ganttSheet.getRange(2, 1, validTasks.length, numHeaders).setValues(validTasks);
     }
     
-    // 5. Apply Conditional Formatting
-    if (typeof applyOverlapConditionalFormatting_ === 'function') {
-      applyOverlapConditionalFormatting_(ganttSheet, hMap, weekData);
+    // 5. Build Project Color Map
+    var projectColorMap = {};
+    var projectsSheet = ss.getSheetByName(SHEET_PROJECTS);
+    if (projectsSheet) {
+      var pLastRow = projectsSheet.getLastRow();
+      if (pLastRow > 1) {
+        var pMap = getHeaderMap_(projectsSheet);
+        var pValues = projectsSheet.getRange(2, 1, pLastRow - 1, Object.keys(pMap).length).getValues();
+        var pNameIdx = getColIndex_(pMap, 'Nombre') - 1;
+        var pColorIdx = getColIndex_(pMap, 'Color') - 1;
+        
+        pValues.forEach(function(pRow) {
+          if (pRow[pNameIdx] && pRow[pColorIdx]) {
+            projectColorMap[pRow[pNameIdx]] = pRow[pColorIdx];
+          }
+        });
+      }
+    }
+    
+    // 6. Apply Formatting (Direct Backgrounds)
+    if (typeof applyOverlapFormatting_ === 'function') {
+      applyOverlapFormatting_(ganttSheet, hMap, weekData, validTasks, projectColorMap);
     }
   }
   
   SpreadsheetApp.flush();
-  // Optional: Auto-resize columns
-  // ganttSheet.autoResizeColumns(1, headers.length);
 }
 
 /**
- * Applies conditional formatting to the Gantt grid.
+ * Applies direct background coloring to the Gantt grid based on task dates and project colors.
  * 
  * @param {Sheet} sheet - The GANTT_VIEW sheet.
  * @param {Object} hMap - Header map {name: index}.
  * @param {Array<Object>} weekData - Array of week objects {week, start, end, label}.
+ * @param {Array<Array>} validTasks - The task data being displayed.
+ * @param {Object} projectColorMap - Map of projectName -> colorHex.
  */
-function applyOverlapConditionalFormatting_(sheet, hMap, weekData) {
+function applyOverlapFormatting_(sheet, hMap, weekData, validTasks, projectColorMap) {
   var lastRow = sheet.getLastRow();
-  if (lastRow < 2) return; // No data
+  if (lastRow < 2) return; 
   
-  // Clear existing rules
-  sheet.clearConditionalFormatRules();
-  
-  var rules = [];
   var numStaticCols = Object.keys(hMap).length;
+  var numWeeks = weekData.length;
   
-  // Resolve Inicio and Fin columns
-  var inicioCol = getColIndex_(hMap, 'Inicio');
-  var finCol = getColIndex_(hMap, 'Fin');
+  // Get the grid range (Rows 2 to LastRow, Column after static headers to End)
+  var rangeToFormat = sheet.getRange(2, numStaticCols + 1, validTasks.length, numWeeks);
   
-  var inicioLetter = colToLetter_(inicioCol);
-  var finLetter = colToLetter_(finCol);
-  
-  // Iterate over each week column
-  for (var i = 0; i < weekData.length; i++) {
-    var week = weekData[i];
-    
-    // Calculate the column index for this week (1-based)
-    var colIndex = numStaticCols + 1 + i;
-    
-    // Define the range for this specific column (Row 2 to LastRow)
-    var range = sheet.getRange(2, colIndex, lastRow - 1, 1);
-    
-    // Date formatting for formula
-    var wStart = week.start;
-    var wEnd = week.end;
-    
-    var sY = wStart.getFullYear();
-    var sM = wStart.getMonth() + 1;
-    var sD = wStart.getDate();
-    
-    var eY = wEnd.getFullYear();
-    var eM = wEnd.getMonth() + 1;
-    var eD = wEnd.getDate();
-    
-    // Formula: =AND($InicioCol2 <= WeekEnd, $FinCol2 >= WeekStart)
-    var formula = '=AND($' + inicioLetter + '2<=DATE(' + eY + ',' + eM + ',' + eD + '),$' + finLetter + '2>=DATE(' + sY + ',' + sM + ',' + sD + '))';
-    
-    var rule = SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied(formula)
-      .setBackground('#4a86e8') // Blue color
-      .setRanges([range])
-      .build();
-      
-    rules.push(rule);
+  // Initialize background array (null clears formatting)
+  var backgrounds = [];
+  for (var r = 0; r < validTasks.length; r++) {
+    var rowBackgrounds = [];
+    for (var w = 0; w < numWeeks; w++) {
+      rowBackgrounds.push(null);
+    }
+    backgrounds.push(rowBackgrounds);
   }
   
-  sheet.setConditionalFormatRules(rules);
+  // Resolve columns for logic
+  var inicioIdx = getColIndex_(hMap, 'Inicio') - 1;
+  var finIdx = getColIndex_(hMap, 'Fin') - 1;
+  var proyectoIdx = getColIndex_(hMap, 'Proyecto') - 1;
+  
+  // Iterate over tasks to compute overlap
+  validTasks.forEach(function(task, rIdx) {
+    var inicio = task[inicioIdx];
+    var fin = task[finIdx];
+    var proyecto = task[proyectoIdx];
+    
+    // Choose color: Project color or default
+    var taskColor = projectColorMap[proyecto] || DEFAULT_COLOR;
+    
+    if (inicio instanceof Date && !isNaN(inicio) && fin instanceof Date && !isNaN(fin)) {
+      weekData.forEach(function(week, wIdx) {
+        // Logic: taskStart <= weekEnd AND taskEnd >= weekStart
+        if (inicio <= week.end && fin >= week.start) {
+          backgrounds[rIdx][wIdx] = taskColor;
+        }
+      });
+    }
+  });
+  
+  // Apply all backgrounds in a single batch operation
+  rangeToFormat.setBackgrounds(backgrounds);
 }
