@@ -214,3 +214,142 @@ function refreshTimelineData() {
   
   Logger.log('TIMELINE_DATA refrescada: ' + timelineRows.length + ' tareas.');
 }
+
+/**
+ * Computes KPIs and populates the DASHBOARD sheet.
+ */
+function refreshDashboard() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var dashboardSheet = ss.getSheetByName(SHEET_DASHBOARD);
+  var tasksSheet = ss.getSheetByName(SHEET_TASKS);
+  var projectsSheet = ss.getSheetByName(SHEET_PROJECTS);
+  
+  if (!dashboardSheet || !tasksSheet || !projectsSheet) {
+    Logger.log('Error: Hojas requeridas no encontradas para el Dashboard.');
+    return;
+  }
+  
+  // 1. Data Retrieval
+  var tMap = getHeaderMap_(tasksSheet);
+  var pMap = getHeaderMap_(projectsSheet);
+  
+  var tasksValues = tasksSheet.getRange(2, 1, tasksSheet.getLastRow() - 1, Object.keys(tMap).length).getValues();
+  var projectsValues = projectsSheet.getRange(2, 1, projectsSheet.getLastRow() - 1, Object.keys(pMap).length).getValues();
+  
+  var tEstadoIdx = getColIndex_(tMap, 'Estado') - 1;
+  var tFinIdx = getColIndex_(tMap, 'Fin') - 1;
+  var tProyectoIdx = getColIndex_(tMap, 'Proyecto') - 1;
+  var tTareaIdx = getColIndex_(tMap, 'Tarea') - 1;
+  
+  var pNombreIdx = getColIndex_(pMap, 'Nombre') - 1;
+  var pOwnerIdx = getColIndex_(pMap, 'Owner') - 1;
+  var pEstadoIdx = getColIndex_(pMap, 'Estado') - 1;
+  
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // 2. Compute Global KPIs
+  var totalTasks = 0;
+  var completedTasks = 0;
+  var overdueTasks = 0;
+  var statusCounts = {};
+  VALID_STATUSES.forEach(function(s) { statusCounts[s] = 0; });
+  
+  var projectStats = {}; // {projectName: {total, completed, overdue, owner, status}}
+  projectsValues.forEach(function(pRow) {
+    var pName = pRow[pNombreIdx];
+    if (pName) {
+      projectStats[pName] = {
+        total: 0,
+        completed: 0,
+        overdue: 0,
+        owner: pRow[pOwnerIdx],
+        status: pRow[pEstadoIdx]
+      };
+    }
+  });
+  
+  tasksValues.forEach(function(row) {
+    if (!row[tTareaIdx]) return;
+    totalTasks++;
+    
+    var estado = row[tEstadoIdx];
+    var fin = row[tFinIdx];
+    var project = row[tProyectoIdx];
+    
+    if (statusCounts.hasOwnProperty(estado)) statusCounts[estado]++;
+    
+    var isDone = (estado === 'Terminado');
+    var isCanceled = (estado === 'Cancelado');
+    
+    if (isDone) completedTasks++;
+    
+    if (!isDone && !isCanceled && fin instanceof Date && fin < today) {
+      overdueTasks++;
+      if (projectStats[project]) projectStats[project].overdue++;
+    }
+    
+    if (projectStats[project]) {
+      projectStats[project].total++;
+      if (isDone) projectStats[project].completed++;
+    }
+  });
+  
+  // 3. Write Dashboard
+  dashboardSheet.clear();
+  var output = [];
+  
+  // Section A: Header
+  output.push(['📊 Dashboard', '']);
+  output.push(['Última actualización:', new Date().toLocaleString()]);
+  output.push(['', '']);
+  
+  // Section B: Global KPIs
+  output.push(['INDICADORES GLOBALES', '']);
+  output.push(['Total Proyectos', projectsValues.length]);
+  output.push(['Total Tareas', totalTasks]);
+  output.push(['Tareas completadas', completedTasks]);
+  var completionRate = totalTasks > 0 ? (completedTasks / totalTasks) : 0;
+  output.push(['% Completado General', (completionRate * 100).toFixed(1) + '%']);
+  output.push(['Tareas vencidas ⚠️', overdueTasks]);
+  output.push(['', '']);
+  
+  // Section C: Status Breakdown
+  output.push(['ESTADO DE TAREAS', '']);
+  for (var status in statusCounts) {
+    output.push([status, statusCounts[status]]);
+  }
+  output.push(['', '']);
+  
+  // Section D: Per-Project Summary
+  output.push(['RESUMEN POR PROYECTO', '', '', '', '', '', '']);
+  output.push(['Proyecto', 'Owner', 'Total Tareas', 'Completadas', '%', 'Vencidas', 'Estado']);
+  
+  for (var pName in projectStats) {
+    var stat = projectStats[pName];
+    var pRate = stat.total > 0 ? (stat.completed / stat.total) : 0;
+    output.push([
+      pName,
+      stat.owner,
+      stat.total,
+      stat.completed,
+      (pRate * 100).toFixed(1) + '%',
+      stat.overdue,
+      stat.status
+    ]);
+  }
+  
+  // Write all at once
+  dashboardSheet.getRange(1, 1, output.length, output[0].length).setValues(output);
+  
+  // Formatting
+  dashboardSheet.getRange('A1').setFontSize(14).setFontWeight('bold');
+  dashboardSheet.getRange('A4:A10').setFontWeight('bold');
+  dashboardSheet.getRange('A12').setFontWeight('bold');
+  dashboardSheet.getRange('A' + (14 + VALID_STATUSES.length)).setFontWeight('bold');
+  // Bold project headers row
+  var projectHeadersRow = 15 + VALID_STATUSES.length;
+  dashboardSheet.getRange(projectHeadersRow, 1, 1, 7).setFontWeight('bold');
+  
+  SpreadsheetApp.flush();
+}
