@@ -103,6 +103,41 @@ function initStructure() {
   if (!ss.getSheetByName(SHEET_GANTT)) {
     ss.insertSheet(SHEET_GANTT);
   }
+
+  // 6. Ensure ISSUES sheet
+  var issuesSheet = ss.getSheetByName(SHEET_ISSUES);
+  if (!issuesSheet) {
+    issuesSheet = ss.insertSheet(SHEET_ISSUES);
+    issuesSheet.getRange(1, 1, 1, HEADERS_ISSUES.length).setValues([HEADERS_ISSUES]);
+    issuesSheet.getRange(1, 1, 1, HEADERS_ISSUES.length).setFontWeight('bold');
+  }
+
+  // --- Post-Structure Validation Setup ---
+  
+  // Apply Estado validation to PROJECTS
+  var pMap = getHeaderMap_(projectsSheet);
+  try {
+    var pEstadoCol = getColIndex_(pMap, 'Estado');
+    var pRange = projectsSheet.getRange(2, pEstadoCol, projectsSheet.getMaxRows() - 1, 1);
+    var pRule = SpreadsheetApp.newDataValidation().requireValueInList(VALID_STATUSES).build();
+    pRange.setDataValidation(pRule);
+  } catch (e) {
+    Logger.log('No se pudo aplicar validación de Estado en PROJECTS: ' + e.message);
+  }
+
+  // Apply Proyecto validation to TASKS (references PROJECTS.Nombre)
+  try {
+    var tMap = getHeaderMap_(tasksSheet);
+    var tProyectoCol = getColIndex_(tMap, 'Proyecto');
+    var pNombreCol = getColIndex_(pMap, 'Nombre');
+    
+    var tRange = tasksSheet.getRange(2, tProyectoCol, tasksSheet.getMaxRows() - 1, 1);
+    var pSourceRange = projectsSheet.getRange(2, pNombreCol, projectsSheet.getMaxRows() - 1, 1);
+    var tRule = SpreadsheetApp.newDataValidation().requireValueInRange(pSourceRange).build();
+    tRange.setDataValidation(tRule);
+  } catch (e) {
+    Logger.log('No se pudo aplicar validación de Proyecto en TASKS: ' + e.message);
+  }
   
   SpreadsheetApp.getUi().alert('Estructura inicializada / verificada correctamente.');
 }
