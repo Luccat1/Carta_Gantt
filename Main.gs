@@ -10,6 +10,7 @@ function onOpen() {
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
       .addItem('Refrescar Timeline', 'refreshTimelineData')
       .addItem('Refrescar Dashboard', 'refreshDashboard')
+      .addItem('Actualizar estados', 'updateProjectStatuses')
       .addSeparator()
       .createMenu('Vistas 📂')
           .addItem('Vista por Proyecto', 'viewByProject')
@@ -130,12 +131,14 @@ function initStructure() {
 
   timelineSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
-  // 8. Ensure DASHBOARD sheet
-  var dashboardSheet = ss.getSheetByName(SHEET_DASHBOARD);
-  if (!dashboardSheet) {
-    dashboardSheet = ss.insertSheet(SHEET_DASHBOARD);
-  }
   dashboardSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
+
+  // 9. Ensure VIEWS sheet
+  var viewsSheet = ss.getSheetByName(SHEET_VIEWS);
+  if (!viewsSheet) {
+    viewsSheet = ss.insertSheet(SHEET_VIEWS);
+  }
+  viewsSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
   // --- Post-Structure Validation Setup ---
   

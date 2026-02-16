@@ -467,3 +467,104 @@ function generateGroupedView_(groupByKey, detailHeaders, icon) {
     });
   }
 }
+
+/**
+ * Recalculates and updates the 'Estado' of each project based on its tasks' statuses.
+ * Public wrapper for menu/manual use.
+ */
+function updateProjectStatuses() {
+  autoUpdateProjectStatuses_();
+  SpreadsheetApp.getUi().alert('Estados de proyectos actualizados.');
+}
+
+/**
+ * Internal logic for auto-updating project statuses.
+ * Rules:
+ * - If ALL tasks are 'Terminado' -> 'Terminado'
+ * - If ANY task is 'Bloqueado' -> 'Bloqueado'
+ * - If ANY task is 'En curso' -> 'En curso'
+ * - If ALL tasks are 'No iniciado' -> 'No iniciado'
+ * - If ALL tasks are 'Cancelado' -> 'Cancelado'
+ * - Mixed (En curso + No iniciado, no blockers) -> 'En curso'
+ */
+function autoUpdateProjectStatuses_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var tasksSheet = ss.getSheetByName(SHEET_TASKS);
+  var projectsSheet = ss.getSheetByName(SHEET_PROJECTS);
+  
+  if (!tasksSheet || !projectsSheet) return;
+  
+  var tMap = getHeaderMap_(tasksSheet);
+  var pMap = getHeaderMap_(projectsSheet);
+  
+  var tLastRow = tasksSheet.getLastRow();
+  var pLastRow = projectsSheet.getLastRow();
+  if (tLastRow < 2 || pLastRow < 2) return;
+  
+  var tasksValues = tasksSheet.getRange(2, 1, tLastRow - 1, Object.keys(tMap).length).getValues();
+  var projectsValues = projectsSheet.getRange(2, 1, pLastRow - 1, Object.keys(pMap).length).getValues();
+  
+  var tProyectoIdx = getColIndex_(tMap, 'Proyecto') - 1;
+  var tEstadoIdx = getColIndex_(tMap, 'Estado') - 1;
+  var pNombreIdx = getColIndex_(pMap, 'Nombre') - 1;
+  var pEstadoIdx = getColIndex_(pMap, 'Estado') - 1;
+  
+  // 1. Group status counts per project
+  var projectStates = {}; // {projectName: {status: count}}
+  tasksValues.forEach(function(row) {
+    var pName = row[tProyectoIdx];
+    var status = row[tEstadoIdx];
+    if (!pName || !status) return;
+    
+    if (!projectStates[pName]) {
+      projectStates[pName] = {};
+      VALID_STATUSES.forEach(function(s) { projectStates[pName][s] = 0; });
+    }
+    if (projectStates[pName].hasOwnProperty(status)) {
+      projectStates[pName][status]++;
+    }
+  });
+  
+  // 2. Resolve new statuses
+  var newStatuses = [];
+  for (var i = 0; i < projectsValues.length; i++) {
+    var pName = projectsValues[i][pNombreIdx];
+    var currentStatus = projectsValues[i][pEstadoIdx];
+    var stats = projectStates[pName];
+    
+    if (!stats) {
+      newStatuses.push([currentStatus]); // No tasks, keep existing
+      continue;
+    }
+    
+    var total = 0;
+    VALID_STATUSES.forEach(function(s) { total += stats[s]; });
+    if (total === 0) {
+      newStatuses.push([currentStatus]);
+      continue;
+    }
+    
+    var resolved;
+    if (stats['Bloqueado'] > 0) {
+      resolved = 'Bloqueado';
+    } else if (stats['En curso'] > 0) {
+      resolved = 'En curso';
+    } else if (stats['Terminado'] === total) {
+      resolved = 'Terminado';
+    } else if (stats['Cancelado'] === total) {
+      resolved = 'Cancelado';
+    } else if (stats['No iniciado'] === total) {
+      resolved = 'No iniciado';
+    } else if (stats['En curso'] === 0 && stats['No iniciado'] > 0 && stats['Terminado'] > 0) {
+      // Mixed Terminado + No iniciado = En curso (since work has started on some)
+      resolved = 'En curso';
+    } else {
+      resolved = 'En curso'; // Default fallback for mixed
+    }
+    
+    newStatuses.push([resolved]);
+  }
+  
+  // 3. Write back to Projects sheet
+  projectsSheet.getRange(2, pEstadoIdx + 1, newStatuses.length, 1).setValues(newStatuses);
+}
