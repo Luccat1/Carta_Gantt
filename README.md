@@ -14,6 +14,9 @@ El sistema utiliza hojas clave. No les cambies el nombre para evitar errores.
 *   **TASKS**: Aquí escribes tus tareas (es tu base de datos principal). Referencia a proyectos de la hoja PROJECTS.
 *   **ISSUES**: Hoja de errores generada por el validador. **NO escribas nada manualmente**.
 *   **GANTT_VIEW**: Hoja del gráfico. **NO escribas nada manualmente**. Esta hoja se borra y se regenera automáticamente.
+*   **TIMELINE_DATA**: Datos estructurados para Gráficos de Tiempo nativos de Google. **NO editar**.
+*   **DASHBOARD**: Resumen de KPIs, estados y salud de proyectos. Se actualiza automáticamente.
+*   **VIEWS**: Vistas filtradas (por Proyecto/Responsable). Generadas bajo demanda desde el menú.
 *   **LOOKUPS**: Hoja auxiliar para cálculos internos.
 
 ---
