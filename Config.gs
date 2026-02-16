@@ -11,6 +11,17 @@ var SHEET_ISSUES = 'ISSUES';
 var SHEET_TIMELINE = 'TIMELINE_DATA';
 var SHEET_DASHBOARD = 'DASHBOARD';
 var SHEET_VIEWS = 'VIEWS';
+var SHEET_TEMPLATES = 'TEMPLATES';
+
+// Headers for the TEMPLATES sheet
+var HEADERS_TEMPLATES = [
+  'Plantilla', 
+  'Tarea', 
+  'Area', 
+  'Subarea', 
+  'Responsable', 
+  'DuraciónDías'
+];
 
 // Headers for the ISSUES sheet
 var HEADERS_ISSUES = [

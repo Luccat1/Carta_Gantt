@@ -18,6 +18,7 @@ function onOpen() {
           .addItem('Vista por Proyecto', 'viewByProject')
           .addItem('Vista por Responsable', 'viewByResponsible')
           .addToUi()
+      .addItem('📋 Aplicar plantilla', 'applyTemplate')
       .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
       .addSeparator()
@@ -142,6 +143,17 @@ function initStructure() {
   }
   viewsSheet.protect().setWarningOnly(true).setDescription('Hoja generada automáticamente por script.');
 
+  // 10. Ensure TEMPLATES sheet
+  var templatesSheet = ss.getSheetByName(SHEET_TEMPLATES);
+  if (!templatesSheet) {
+    templatesSheet = ss.insertSheet(SHEET_TEMPLATES);
+    templatesSheet.getRange(1, 1, 1, HEADERS_TEMPLATES.length).setValues([HEADERS_TEMPLATES]);
+    templatesSheet.getRange(1, 1, 1, HEADERS_TEMPLATES.length).setFontWeight('bold');
+    // Add example template row
+    templatesSheet.appendRow(['Básico', 'Inicio Proyecto', 'Gestión', 'Planning', '', 5]);
+  }
+  templatesSheet.protect().setWarningOnly(true).setDescription('Define plantillas de tareas aquí.');
+
   // --- Post-Structure Validation Setup ---
   
   // Apply Estado validation to PROJECTS
@@ -172,7 +184,149 @@ function initStructure() {
   SpreadsheetApp.getUi().alert('Estructura inicializada / verificada correctamente.');
 }
 
-// Placeholder functions to avoid errors before they are implemented
+
+/**
+ * Opens the sidebar for adding a new task.
+ */
+function showNewTaskSidebar() {
+  var html = HtmlService.createHtmlOutputFromFile('Sidebar')
+      .setTitle('Nueva Tarea')
+      .setWidth(300);
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+/**
+ * Returns a unique list of project names for the sidebar dropdown.
+ */
+function getProjectNames() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_PROJECTS);
+  if (!sheet) return [];
+  
+  var hMap = getHeaderMap_(sheet);
+  var nameCol = getColIndex_(hMap, 'Nombre');
+  var data = sheet.getRange(2, nameCol, sheet.getLastRow() - 1, 1).getValues();
+  
+  return data.map(function(row) { return row[0]; }).filter(function(name) { return name !== ""; });
+}
+
+/**
+ * Returns the list of valid statuses for the sidebar dropdown.
+ */
+function getValidStatuses() {
+  return VALID_STATUSES;
+}
+
+/**
+ * Appends a new task from the sidebar data.
+ */
+function addTaskFromSidebar(formData) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_TASKS);
+  if (!sheet) throw new Error('Hoja TASKS no encontrada.');
+  
+  var hMap = getHeaderMap_(sheet);
+  var numCols = Object.keys(hMap).length;
+  var row = new Array(numCols).fill("");
+  
+  // Map formData to row based on headers
+  row[getColIndex_(hMap, 'Proyecto') - 1] = formData.Proyecto;
+  row[getColIndex_(hMap, 'ID') - 1] = generateTaskId_();
+  row[getColIndex_(hMap, 'Area') - 1] = formData.Area;
+  row[getColIndex_(hMap, 'Tarea') - 1] = formData.Tarea;
+  row[getColIndex_(hMap, 'Responsable') - 1] = formData.Responsable;
+  
+  // Dates from <input type="date"> are "YYYY-MM-DD"
+  if (formData.Inicio) row[getColIndex_(hMap, 'Inicio') - 1] = new Date(formData.Inicio + 'T00:00:00');
+  if (formData.Fin) row[getColIndex_(hMap, 'Fin') - 1] = new Date(formData.Fin + 'T00:00:00');
+  row[getColIndex_(hMap, 'Estado') - 1] = formData.Estado;
+  
+  sheet.appendRow(row);
+  return 'Tarea añadida correctamente: ' + formData.Tarea;
+}
+
+/**
+ * Applies a project template to the TASKS sheet.
+ */
+function applyTemplate() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var templatesSheet = ss.getSheetByName(SHEET_TEMPLATES);
+  var projectsSheet = ss.getSheetByName(SHEET_PROJECTS);
+  var tasksSheet = ss.getSheetByName(SHEET_TASKS);
+  
+  if (!templatesSheet || !projectsSheet || !tasksSheet) {
+    SpreadsheetApp.getUi().alert('Error: No se encontraron las hojas necesarias (TEMPLATES, PROJECTS o TASKS).');
+    return;
+  }
+  
+  // 1. Get unique template names
+  var tData = templatesSheet.getDataRange().getValues();
+  if (tData.length <= 1) {
+    SpreadsheetApp.getUi().alert('No hay plantillas definidas en la hoja TEMPLATES.');
+    return;
+  }
+  
+  var templateNames = [...new Set(tData.slice(1).map(row => row[0]).filter(val => val !== ""))];
+  
+  // 2. Get project names
+  var projectNames = getProjectNames();
+  
+  // 3. Prompt user for Template and Project
+  // We use a simple prompt since we don't have a complex UI yet
+  var ui = SpreadsheetApp.getUi();
+  var templateMsg = 'Plantillas disponibles:\n' + templateNames.join(', ') + '\n\nEscriba el nombre exacto de la plantilla:';
+  var tPrompt = ui.prompt('Aplicar Plantilla', templateMsg, ui.ButtonSet.OK_CANCEL);
+  if (tPrompt.getSelectedButton() !== ui.Button.OK) return;
+  var selectedTemplate = tPrompt.getResponseText();
+  
+  if (!templateNames.includes(selectedTemplate)) {
+    ui.alert('Error: Plantilla no válida.');
+    return;
+  }
+  
+  var projectMsg = 'Proyectos disponibles:\n' + projectNames.join(', ') + '\n\nEscriba el nombre del proyecto destino:';
+  var pPrompt = ui.prompt('Aplicar Plantilla', projectMsg, ui.ButtonSet.OK_CANCEL);
+  if (pPrompt.getSelectedButton() !== ui.Button.OK) return;
+  var selectedProject = pPrompt.getResponseText();
+  
+  if (!projectNames.includes(selectedProject)) {
+    ui.alert('Error: Proyecto no válido.');
+    return;
+  }
+  
+  // 4. Filter tasks of the template
+  var templateTasks = tData.filter(row => row[0] === selectedTemplate);
+  
+  // 5. Append to TASKS
+  var tMap = getHeaderMap_(tasksSheet);
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  
+  templateTasks.forEach(tRow => {
+    var row = new Array(Object.keys(tMap).length).fill("");
+    var duration = parseInt(tRow[5]) || 0;
+    var fin = new Date(today);
+    fin.setDate(today.getDate() + duration);
+    
+    row[getColIndex_(tMap, 'Proyecto') - 1] = selectedProject;
+    row[getColIndex_(tMap, 'ID') - 1] = generateTaskId_();
+    row[getColIndex_(tMap, 'Tarea') - 1] = tRow[1];
+    row[getColIndex_(tMap, 'Area') - 1] = tRow[2];
+    row[getColIndex_(tMap, 'Subarea') - 1] = tRow[3];
+    row[getColIndex_(tMap, 'Responsable') - 1] = tRow[4];
+    row[getColIndex_(tMap, 'Inicio') - 1] = today;
+    row[getColIndex_(tMap, 'Fin') - 1] = fin;
+    row[getColIndex_(tMap, 'Estado') - 1] = 'No iniciado';
+    
+    tasksSheet.appendRow(row);
+  });
+  
+  autoUpdateProjectStatuses_();
+  refreshGanttView();
+  
+  ui.alert('Plantilla "' + selectedTemplate + '" aplicada exitosamente al proyecto "' + selectedProject + '".');
+}
+
 
 
 
