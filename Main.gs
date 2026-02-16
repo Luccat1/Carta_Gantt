@@ -22,6 +22,8 @@ function onOpen() {
       .addItem('Validar datos', 'runFullValidation')
       .addItem('Rollover anual', 'rolloverToNextYear')
       .addSeparator()
+      .addItem('⚡ Configurar trigger AppSheet', 'setupAppSheetTrigger')
+      .addSeparator()
       .addItem('Gestionar proyectos', 'manageProjects')
       .addToUi();
 }
@@ -348,6 +350,65 @@ function applyTemplate() {
   refreshGanttView();
   
   ui.alert('Plantilla "' + selectedTemplate + '" aplicada exitosamente al proyecto "' + selectedProject + '".');
+}
+
+/**
+ * Installable trigger to handle actions from AppSheet.
+ */
+function setupAppSheetTrigger() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var triggers = ScriptApp.getProjectTriggers();
+  var alreadyExists = false;
+  
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'onEditDispatcher_') {
+      alreadyExists = true;
+      break;
+    }
+  }
+  
+  if (alreadyExists) {
+    SpreadsheetApp.getUi().alert('El trigger ya está configurado.');
+  } else {
+    ScriptApp.newTrigger('onEditDispatcher_')
+      .forSpreadsheet(ss)
+      .onEdit()
+      .create();
+    SpreadsheetApp.getUi().alert('Trigger installable configurado exitosamente.');
+  }
+}
+
+/**
+ * Dispatches actions written by AppSheet to the corresponding script functions.
+ */
+function onEditDispatcher_(e) {
+  if (!e) return;
+  var sheet = e.range.getSheet();
+  if (sheet.getName() !== SHEET_TASKS) return;
+  
+  var hMap = getHeaderMap_(sheet);
+  var actionColIdx;
+  try {
+    actionColIdx = getColIndex_(hMap, '_Acción');
+  } catch(err) { return; }
+  
+  if (e.range.getColumn() !== actionColIdx) return;
+  
+  var action = e.value;
+  if (!action) return;
+  
+  // Dispatch
+  if (action === 'Refrescar') {
+    refreshGanttView();
+  } else if (action === 'Estados') {
+    autoUpdateProjectStatuses_();
+  } else if (action === 'Dashboard') {
+    refreshDashboard();
+  }
+  
+  // Clear cell
+  e.range.clearContent();
+  Logger.log('AppSheet Action Executed: ' + action);
 }
 
 
