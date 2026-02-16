@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      body {
+        font-family: "Open Sans", Roboto, Arial, sans-serif;
+        padding: 15px;
+        color: #3c4043;
+        background-color: #f8f9fa;
+      }
+      .form-group {
+        margin-bottom: 12px;
+      }
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      input:focus,
+      select:focus {
+        border-color: #1a73e8;
+        outline: none;
+      }
+      button {
+        padding: 10px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      .btn-primary {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+      }
+      .btn-primary:hover {
+        background-color: #1765cc;
+      }
+      .btn-secondary {
+        background-color: white;
+        color: #3c4043;
+        border: 1px solid #dadce0;
+        margin-left: 8px;
+      }
+      .btn-secondary:hover {
+        background-color: #f1f3f4;
+      }
+      #status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+        font-size: 13px;
+      }
+      .success {
+        background-color: #e6f4ea;
+        color: #137333;
+      }
+      .error {
+        background-color: #fce8e6;
+        color: #c5221f;
+      }
+      .loading {
+        color: #5f6368;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="form-container">
+      <form id="taskForm">
+        <div class="form-group">
+          <label for="proyecto">Proyecto *</label>
+          <select id="proyecto" name="Proyecto" required>
+            <option value="">Cargando proyectos...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="area">Área</label>
+          <input type="text" id="area" name="Area" />
+        </div>
+
+        <div class="form-group">
+          <label for="tarea">Tarea *</label>
+          <input type="text" id="tarea" name="Tarea" required />
+        </div>
+
+        <div class="form-group">
+          <label for="responsable">Responsable</label>
+          <input type="text" id="responsable" name="Responsable" />
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 10px">
+          <div style="flex: 1">
+            <label for="inicio">Inicio *</label>
+            <input type="date" id="inicio" name="Inicio" required />
+          </div>
+          <div style="flex: 1">
+            <label for="fin">Fin *</label>
+            <input type="date" id="fin" name="Fin" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" name="Estado">
+            <!-- Populated via script -->
+          </select>
+        </div>
+
+        <div style="margin-top: 20px">
+          <button type="submit" class="btn-primary" id="saveBtn">
+            Guardar
+          </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            onclick="google.script.host.close()"
+          >
+            Cerrar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="status"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 1. Populate Dropdowns
+        google.script.run
+          .withSuccessHandler(function (projects) {
+            const select = document.getElementById("proyecto");
+            select.innerHTML = '<option value="">-- Seleccionar --</option>';
+            projects.forEach((p) => {
+              const opt = document.createElement("option");
+              opt.value = p;
+              opt.textContent = p;
+              select.appendChild(opt);
+            });
+          })
+          .getProjectNames();
+
+        google.script.run
+          .withSuccessHandler(function (statuses) {
+            const select = document.getElementById("estado");
+            statuses.forEach((s) => {
+              const opt = document.createElement("option");
+              opt.value = s;
+              opt.textContent = s;
+              select.appendChild(opt);
+            });
+          })
+          .getValidStatuses();
+      });
+
+      document
+        .getElementById("taskForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const statusDiv = document.getElementById("status");
+          const saveBtn = document.getElementById("saveBtn");
+
+          statusDiv.textContent = "Guardando...";
+          statusDiv.className = "loading";
+          statusDiv.style.display = "block";
+          saveBtn.disabled = true;
+
+          const formData = {
+            Proyecto: document.getElementById("proyecto").value,
+            Area: document.getElementById("area").value,
+            Tarea: document.getElementById("tarea").value,
+            Responsable: document.getElementById("responsable").value,
+            Inicio: document.getElementById("inicio").value,
+            Fin: document.getElementById("fin").value,
+            Estado: document.getElementById("estado").value,
+          };
+
+          google.script.run
+            .withSuccessHandler(function (response) {
+              statusDiv.textContent = "✅ " + response;
+              statusDiv.className = "success";
+              document.getElementById("taskForm").reset();
+              saveBtn.disabled = false;
+            })
+            .withFailureHandler(function (err) {
+              statusDiv.textContent = "❌ Error: " + err;
+              statusDiv.className = "error";
+              saveBtn.disabled = false;
+            })
+            .addTaskFromSidebar(formData);
+        });
+    </script>
+  </body>
+</html>

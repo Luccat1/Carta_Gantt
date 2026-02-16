@@ -5,6 +5,8 @@
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Gantt ⚙️')
+      .addItem('➕ Nueva tarea', 'showNewTaskSidebar')
+      .addSeparator()
       .addItem('Inicializar / reparar estructura', 'initStructure')
       .addItem('Generar calendario', 'buildCalendarFromConfig')
       .addItem('Refrescar vista Gantt', 'refreshGanttView')
