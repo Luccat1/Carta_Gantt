@@ -1,12 +1,11 @@
 ## Current Position
-- **Milestone**: v1.0 (Completed)
-- **Status**: Archived
-- **Next Milestone**: v1.1 (Polish & Flexibility)
+- **Milestone**: v1.1 — Multi-Proyecto & Suite Google
+- **Phase**: 4 (Planning)
+- **Task**: Plans created — ready for execution
+- **Status**: Plans 4.1, 4.2, 4.3 created
 
 ## Last Session Summary
-Milestone v1.0 completed and archived.
-- Phases 1-3 moved to `.gsd/milestones/v1.0/`
-- Summary created in `.gsd/milestones/v1.0-SUMMARY.md`
+Milestone v1.0 completed. Milestone v1.1 created with 7 phases. Phase 4 planning complete.
 
 ## Next Steps
-1. /new-milestone v1.1 (or /plan 4)
+1. /execute 4

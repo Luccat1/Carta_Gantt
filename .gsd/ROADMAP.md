@@ -1,41 +1,57 @@
 # ROADMAP.md
 
-> **Current Phase**: Not started
-> **Milestone**: v1.0
+> **Current Phase**: Phase 4
+> **Milestone**: v1.1 — Multi-Proyecto & Suite Google
 
-## Must-Haves (from SPEC)
-- [x] Automated Gantt visualization
-- [x] Menu-driven management
-- [x] Safe annual accounting (rollover)
+## Must-Haves (v1.1)
+- [ ] Tabla PROJECTS + ProyectoID en TASKS
+- [ ] ID autogenerado + Estado enum
+- [ ] Header-map (no depender de posiciones de columna)
+- [ ] Validador con hoja ISSUES
+- [ ] TIMELINE_DATA autogenerada
+- [ ] Tablas AppSheet-friendly
 
-## Phases
+## Completed Phases (v1.0)
 
 ### Phase 1: Foundation & Calendar
 **Status**: ✅ Complete
-**Objective**: Establish the sheet structure and calendar generation logic.
-**Requirements**: REQ-01, REQ-02
-- Validate/Create CONFIG, TASKS, LOOKUPS sheets.
-- Implement `buildCalendarFromConfig()` to generate S1-S4 ranges.
 
 ### Phase 2: Core Visualization
 **Status**: ✅ Complete
-**Objective**: Render tasks on the Gantt view with correct timing.
-**Requirements**: REQ-03, REQ-04
-- Implement `refreshGanttView()` to map tasks.
-- Apply conditional formatting (fixing the anchor bug).
 
 ### Phase 3: Robustness & Safety
 **Status**: ✅ Complete
-**Objective**: Ensure system longevity and data integrity.
-**Requirements**: REQ-05, REQ-07
-- Implement `rolloverToNextYear()` with archiving.
-- Add basic data validation (Dates, Start < End).
 
-## Future Phases / v1.1
+## Active Phases (v1.1)
 
-### Phase 4: Polish & Flexibility
+### Phase 4: Modelo de Datos v2
+**Status**: 🔄 Planning
+**Objective**: Restructure data model for multi-project support. Add PROJECTS sheet, ProyectoID, auto-ID, Estado enum, and header-map utility.
+- Add PROJECTS sheet (ProyectoID, Nombre, Owner, Fechas, Estado, Color).
+- Expand TASKS headers: Proyecto, ID autogenerado, Estado normalizado.
+- Implement header-map utility (column lookup by name).
+- Update all existing scripts to use header-map instead of hardcoded indices.
+
+### Phase 5: Validación & Contrato
 **Status**: ⬜ Not Started
-**Objective**: Make the tool adaptable and user-friendly.
-**Requirements**: REQ-06, REQ-08
-- Implement dynamic column mapping (Header Map).
-- Allow configurable status colors.
+**Objective**: Robust validation engine with ISSUES reporting and sheet protections.
+
+### Phase 6: Timeline & Multi-Mes
+**Status**: ⬜ Not Started
+**Objective**: TIMELINE_DATA sheet, colores por Proyecto/Área, selector multi-mes.
+
+### Phase 7: Vistas & Dashboard
+**Status**: ⬜ Not Started
+**Objective**: Portfolio, por proyecto, por responsable, KPIs.
+
+### Phase 8: UX & Automatización
+**Status**: ⬜ Not Started
+**Objective**: Auto-estados, Sidebar nueva tarea, rollover mejorado, plantillas.
+
+### Phase 9: AppSheet
+**Status**: ⬜ Not Started
+**Objective**: Tablas separadas, acciones, instrucciones.
+
+### Phase 10: Integraciones Suite Google
+**Status**: ⬜ Not Started
+**Objective**: Calendar, Drive carpetas, Gmail avisos.
