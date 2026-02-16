@@ -82,6 +82,16 @@ Este sistema está preparado para conectarse con **AppSheet**, permitiéndote ge
 
 ---
 
+## 🔗 Integraciones Google Suite
+
+Este sistema aprovecha el ecosistema de Google para potenciar la gestión:
+
+*   **Calendario**: Sincroniza fechas límite de tareas directamente a un Google Calendar dedicado.
+*   **Drive**: Crea automáticamente una estructura de carpetas (`Documentos`, `Entregas`, `Recursos`) para cada proyecto registrado.
+*   **Notificaciones**: Envío automático de alertas por email para tareas vencidas o próximas a vencer (vía Gmail/MailApp).
+
+---
+
 ## ❓ Preguntas Frecuentes
 
 **¿Puedo pintar celdas en GANTT_VIEW?**

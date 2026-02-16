@@ -24,6 +24,13 @@ function onOpen() {
       .addSeparator()
       .addItem('⚡ Configurar trigger AppSheet', 'setupAppSheetTrigger')
       .addSeparator()
+      .addItem('📅 Sincronizar con Calendar', 'syncTasksToCalendar')
+      .addSeparator()
+      .addItem('📁 Crear carpetas en Drive', 'createProjectFolders')
+      .addSeparator()
+      .addItem('📧 Enviar alertas por email', 'sendTaskAlerts')
+      .addItem('👁️ Preview de alertas', 'sendTaskAlertsPreview')
+      .addSeparator()
       .addItem('Gestionar proyectos', 'manageProjects')
       .addToUi();
 }
