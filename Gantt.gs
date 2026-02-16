@@ -342,8 +342,15 @@ function refreshDashboard() {
     ]);
   }
   
-  // Write all at once
-  dashboardSheet.getRange(1, 1, output.length, output[0].length).setValues(output);
+  // Write all at once after normalizing row lengths to create a rectangular grid
+  var maxCols = 7;
+  var normalizedOutput = output.map(function(row) {
+    while (row.length < maxCols) row.push('');
+    return row.slice(0, maxCols);
+  });
+  
+  dashboardSheet.getRange(1, 1, normalizedOutput.length, maxCols).setValues(normalizedOutput);
+
   
   // Formatting
   dashboardSheet.getRange('A1').setFontSize(14).setFontWeight('bold');

@@ -8,18 +8,18 @@ Este sistema te permite gestionar cronogramas de proyectos de forma sencilla, ge
 Todo el control del sistema está en el menú superior llamado **"Gantt ⚙️"**. Si no lo ves al abrir el archivo, espera unos segundos o recarga la página.
 
 ### 2. Hojas Principales
-El sistema utiliza hojas clave. No les cambies el nombre para evitar errores.
-*   **CONFIG**: Aquí defines el **Año** y **Mes** que quieres visualizar.
-*   **PROJECTS**: Catálogo de proyectos activos (ID, Nombre, Owner, Fechas).
-*   **TASKS**: Aquí escribes tus tareas (es tu base de datos principal). Referencia a proyectos de la hoja PROJECTS.
-*   **ISSUES**: Hoja de errores generada por el validador. **NO escribas nada manualmente**.
-*   **GANTT_VIEW**: Hoja del gráfico. **NO escribas nada manualmente**. Esta hoja se borra y se regenera automáticamente.
-*   **TIMELINE_DATA**: Datos estructurados para Gráficos de Tiempo nativos de Google. **NO editar**.
-*   **DASHBOARD**: Resumen de KPIs, estados y salud de proyectos. Se actualiza automáticamente.
-*   **VIEWS**: Vistas filtradas (por Proyecto/Responsable). Generadas bajo demanda desde el menú.
-*   **APPSHEET_CONFIG**: Metadatos para configurar AppSheet.
-*   **INSTRUCCIONES**: Guía paso a paso para conectar con AppSheet.
-*   **LOOKUPS**: Hoja auxiliar para cálculos internos.
+El sistema utiliza varias hojas clave para funcionar. 
+
+> [!TIP]
+> **[Consulta el Manual de Hojas completo aquí para saber qué puedes editar y qué no](.gsd/MANUAL_HOJAS.md).**
+
+Breve resumen:
+*   **CONFIG**: Configuración visual (Año/Mes).
+*   **PROJECTS**: Catálogo de proyectos.
+*   **TASKS**: Base de datos de tareas (Tu hoja principal).
+*   **ISSUES**: Reporte de errores de validación.
+*   **GANTT_VIEW**: El gráfico Gantt (Auto-generado).
+*   **DASHBOARD**: Resumen de KPIs (Auto-generado).
 
 ---
 
